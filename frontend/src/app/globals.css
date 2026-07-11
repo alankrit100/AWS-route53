@@ -14,11 +14,12 @@ body {
   font-family: "Amazon Ember", "Helvetica Neue", Arial, sans-serif;
   background-color: #f2f3f3;
   color: #16191f;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-/* Dark mode page-level background */
 .awsui-dark-mode body {
-  background-color: #16191f;
+  background-color: #202530;
+  color: #d5dbdb;
 }
 
 a {

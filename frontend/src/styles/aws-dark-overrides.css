@@ -1,25 +1,45 @@
 /* Dark mode companion to aws-overrides.css */
 
 .awsui-dark-mode [class*="awsui_top-navigation"] {
-  background-color: #0f141a !important;
+  background-color: #1a202c !important;
 }
 
 .awsui-dark-mode [class*="awsui_side-navigation"] {
-  background-color: #0f141a !important;
+  background-color: #1a202c !important;
 }
 
 .awsui-dark-mode [class*="awsui_app-layout"] [class*="awsui_content"] {
-  background-color: #16191f !important;
+  background-color: #202530 !important;
+}
+
+/* Side nav items: softer text in dark mode */
+.awsui-dark-mode [class*="awsui_side-navigation"] [class*="awsui_link"]:not([class*="awsui_link-active"]) {
+  color: #a0a7b4 !important;
 }
 
 .awsui-dark-mode [class*="awsui_side-navigation"] [class*="awsui_link-active"] {
-  border-left-color: #539fe5 !important;
+  border-left-color: #44b4ff !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
 }
 
+.awsui-dark-mode [class*="awsui_side-navigation"] [class*="awsui_link"]:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.awsui-dark-mode [class*="awsui_side-navigation"] [class*="awsui_divider"] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.awsui-dark-mode [class*="awsui_side-navigation"] [class*="awsui_section-group"] {
+  color: #6b7280 !important;
+}
+
+/* Links */
 .awsui-dark-mode a {
-  color: #539fe5;
+  color: #44b4ff;
+  transition: color 0.3s ease;
 }
 
 .awsui-dark-mode a:hover {
-  color: #89bffd;
+  color: #7cc4ff;
 }

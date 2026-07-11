@@ -4,6 +4,14 @@
  * nudge the chrome (header / sidebar) and links to match Route 53.
  */
 
+/* Smooth theme transitions */
+[class*="awsui_top-navigation"],
+[class*="awsui_side-navigation"],
+[class*="awsui_app-layout"] [class*="awsui_content"],
+body {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+}
+
 /* Top navigation: AWS dark header bar */
 [class*="awsui_top-navigation"] {
   background-color: #232f3e !important;
@@ -57,6 +65,7 @@
 /* Links */
 a {
   color: #0972d3;
+  transition: color 0.3s ease;
 }
 
 a:hover {
