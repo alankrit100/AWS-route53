@@ -9,6 +9,21 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class SignupRequest(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    user: dict
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
 class LoginResponse(BaseModel):
     token: str
     user: dict

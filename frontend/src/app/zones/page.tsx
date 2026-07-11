@@ -16,7 +16,7 @@ import Form from "@cloudscape-design/components/form";
 import Alert from "@cloudscape-design/components/alert";
 import TextContent from "@cloudscape-design/components/text-content";
 import Link from "@cloudscape-design/components/link";
-import { auth, zones } from "@/lib/api";
+import { auth, zones, clearTokens } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider, useNotification } from "@/components/NotificationFlashbar";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -334,14 +334,14 @@ export default function ZonesPage() {
   const [user, setUser] = useState<{ id: string; username: string } | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.replace("/login"); return; }
     auth.me().then(setUser).catch(() => router.replace("/login"));
   }, [router]);
 
   const handleLogout = async () => {
     try { await auth.logout(); } catch {}
-    localStorage.removeItem("token");
+    clearTokens();
     router.push("/login");
   };
 

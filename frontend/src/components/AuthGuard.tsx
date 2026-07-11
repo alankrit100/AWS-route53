@@ -7,13 +7,13 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) {
       router.replace("/login");
     }
   }, [router]);
 
-  if (typeof window !== "undefined" && !localStorage.getItem("token")) {
+  if (typeof window !== "undefined" && !localStorage.getItem("access_token")) {
     return null;
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { auth, setToken, clearToken } from "@/lib/api";
+import { auth, setTokens, clearTokens } from "@/lib/api";
 import type { User } from "@/lib/types";
 
 export function useAuth() {
@@ -9,7 +9,7 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) {
       setLoading(false);
       return;
@@ -18,7 +18,7 @@ export function useAuth() {
       .me()
       .then((u) => setUser(u))
       .catch(() => {
-        clearToken();
+        clearTokens();
         setUser(null);
       })
       .finally(() => setLoading(false));
@@ -26,7 +26,7 @@ export function useAuth() {
 
   const login = useCallback(async (username: string, password: string) => {
     const res = await auth.login(username, password);
-    setToken(res.token);
+    setTokens(res.access_token, res.refresh_token);
     setUser(res.user);
     return res;
   }, []);
@@ -36,7 +36,7 @@ export function useAuth() {
       await auth.logout();
     } catch {
     } finally {
-      clearToken();
+      clearTokens();
       setUser(null);
     }
   }, []);

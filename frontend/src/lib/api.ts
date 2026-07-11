@@ -1,5 +1,5 @@
 import type {
-  LoginResponse,
+  AuthResponse,
   User,
   HostedZone,
   HostedZoneListResponse,
@@ -14,17 +14,54 @@ import type {
 const rawBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const API_BASE = rawBase === "/api" ? "" : rawBase;
 
-function getToken(): string | null {
+function getAccessToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("token");
+  return localStorage.getItem("access_token");
 }
 
-export function setToken(token: string) {
-  localStorage.setItem("token", token);
+function getRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("refresh_token");
 }
 
-export function clearToken() {
-  localStorage.removeItem("token");
+export function setTokens(access: string, refresh: string) {
+  localStorage.setItem("access_token", access);
+  localStorage.setItem("refresh_token", refresh);
+}
+
+export function clearTokens() {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+}
+
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return null;
+
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+      if (!res.ok) throw new Error("refresh failed");
+      const data: AuthResponse = await res.json();
+      setTokens(data.access_token, data.refresh_token);
+      return data.access_token;
+    } catch {
+      clearTokens();
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
 async function request<T>(
@@ -32,7 +69,7 @@ async function request<T>(
   path: string,
   body?: unknown
 ): Promise<T> {
-  const token = getToken();
+  const token = getAccessToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -40,16 +77,33 @@ async function request<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  let res = await fetch(`${API_BASE}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
 
+  if (res.status === 401) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      headers["Authorization"] = `Bearer ${newToken}`;
+      res = await fetch(`${API_BASE}${path}`, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } else {
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+        window.location.href = "/login";
+      }
+      throw new Error("Authentication required.");
+    }
+  }
+
   if (!res.ok) {
     const errorData = (await res.json().catch(() => null)) as ApiError | null;
     if (res.status === 401 && typeof window !== "undefined") {
-      clearToken();
+      clearTokens();
       if (!window.location.pathname.startsWith("/login")) {
         window.location.href = "/login";
       }
@@ -65,7 +119,9 @@ async function request<T>(
 // Auth
 export const auth = {
   login: (username: string, password: string) =>
-    request<LoginResponse>("POST", "/api/auth/login", { username, password }),
+    request<AuthResponse>("POST", "/api/auth/login", { username, password }),
+  signup: (username: string, password: string) =>
+    request<AuthResponse>("POST", "/api/auth/signup", { username, password }),
   logout: () => request<void>("POST", "/api/auth/logout"),
   me: () => request<User>("GET", "/api/auth/me"),
 };
@@ -138,7 +194,7 @@ export const exports_ = {
   json: (zoneId: string) =>
     request<{ zone_name: string; records: unknown[]; exported_at: string }>("GET", `/api/zones/${zoneId}/export-json`),
   bind: async (zoneId: string, zoneName: string) => {
-    const token = getToken();
+    const token = getAccessToken();
     const res = await fetch(`${API_BASE}/api/zones/${zoneId}/export-bind`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });

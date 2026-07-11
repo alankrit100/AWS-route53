@@ -9,10 +9,9 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import Button from "@cloudscape-design/components/button";
 import Link from "@cloudscape-design/components/link";
-import { auth, zones } from "@/lib/api";
+import { auth, zones, clearTokens } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider } from "@/components/NotificationFlashbar";
-import type { HostedZone } from "@/lib/types";
 
 function DashboardContent() {
   const router = useRouter();
@@ -26,63 +25,96 @@ function DashboardContent() {
     <SpaceBetween size="l" direction="vertical">
       <Header
         variant="h1"
-        description="Manage your DNS records, health checks, and traffic policies."
+        description="Manage domain name system (DNS) settings, traffic policies, and health checks for your domains."
       >
         Route 53 dashboard
       </Header>
 
+      <ColumnLayout columns={4} variant="text-grid">
+        <Container>
+          <Box variant="awsui-key-label">Hosted zones</Box>
+          <Box variant="awsui-value-large" padding={{ top: "xxs", bottom: "xs" }}>
+            {zoneCount === null ? "—" : zoneCount}
+          </Box>
+          <Link onFollow={() => router.push("/zones")}>View hosted zones</Link>
+        </Container>
+        <Container>
+          <Box variant="awsui-key-label">Health checks</Box>
+          <Box variant="awsui-value-large" padding={{ top: "xxs", bottom: "xs" }}>0</Box>
+          <Link onFollow={() => router.push("/health-checks")}>View health checks</Link>
+        </Container>
+        <Container>
+          <Box variant="awsui-key-label">Traffic policies</Box>
+          <Box variant="awsui-value-large" padding={{ top: "xxs", bottom: "xs" }}>0</Box>
+          <Link onFollow={() => router.push("/traffic-policies")}>View traffic policies</Link>
+        </Container>
+        <Container>
+          <Box variant="awsui-key-label">Resolver rules</Box>
+          <Box variant="awsui-value-large" padding={{ top: "xxs", bottom: "xs" }}>0</Box>
+          <Link onFollow={() => router.push("/resolver")}>View resolver</Link>
+        </Container>
+      </ColumnLayout>
+
       <ColumnLayout columns={2} variant="text-grid">
-        <Container
-          header={<Header variant="h2">Getting started</Header>}
-        >
+        <Container header={<Header variant="h2">Getting started</Header>}>
           <SpaceBetween size="m" direction="vertical">
             <Box variant="p">
-              Get started with Route 53 by creating a hosted zone for your domain.
+              Follow these steps to get started with Amazon Route 53.
             </Box>
-            <SpaceBetween size="s" direction="vertical">
-              <Link href="/zones">
-                Create a hosted zone
+            <SpaceBetween size="xs" direction="vertical">
+              <Link onFollow={() => router.push("/zones")}>
+                1. Create a hosted zone for your domain
               </Link>
-              <Link href="/health-checks">
-                Create a health check
+              <Link onFollow={() => router.push("/zones")}>
+                2. Add DNS records within your hosted zone
               </Link>
-              <Link external href="https://docs.aws.amazon.com/route53/">
-                Route 53 documentation
+              <Link onFollow={() => router.push("/health-checks")}>
+                3. Set up health checks for your endpoints
+              </Link>
+              <Link onFollow={() => router.push("/traffic-policies")}>
+                4. Create traffic policies to route users
               </Link>
             </SpaceBetween>
           </SpaceBetween>
         </Container>
 
-        <Container
-          header={<Header variant="h2">Resources</Header>}
-        >
+        <Container header={<Header variant="h2">DNS management</Header>}>
           <SpaceBetween size="m" direction="vertical">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Box variant="h3">Hosted zones</Box>
-              <Box variant="awsui-value-large">
-                {zoneCount === null ? "—" : zoneCount}
-              </Box>
-            </div>
+            <SpaceBetween size="xs" direction="vertical">
+              <Link onFollow={() => router.push("/zones")}>
+                Hosted zones — manage records for your domains
+              </Link>
+              <Link onFollow={() => router.push("/health-checks")}>
+                Health checks — monitor endpoint health
+              </Link>
+              <Link onFollow={() => router.push("/traffic-policies")}>
+                Traffic policies — configure routing policies
+              </Link>
+              <Link onFollow={() => router.push("/profiles")}>
+                Profiles — manage Route 53 profiles
+              </Link>
+              <Link onFollow={() => router.push("/resolver")}>
+                Resolver — manage DNS firewall and query logging
+              </Link>
+            </SpaceBetween>
             <Button variant="primary" onClick={() => router.push("/zones")}>
-              View hosted zones
+              Go to hosted zones
             </Button>
           </SpaceBetween>
         </Container>
       </ColumnLayout>
 
-      <Container
-        header={<Header variant="h2">What's new</Header>}
-      >
-        <SpaceBetween size="s" direction="vertical">
-          <Box variant="p">
-            <strong>DNS management:</strong> Create and manage A, AAAA, CNAME, TXT, MX, NS, PTR, SRV, and CAA records.
-          </Box>
-          <Box variant="p">
-            <strong>Import / Export:</strong> Import BIND zone files and export zones in JSON or BIND format.
-          </Box>
-          <Box variant="p">
-            <strong>Keyboard shortcuts:</strong> Press <kbd>?</kbd> anywhere in the console to see available shortcuts.
-          </Box>
+      <Container header={<Header variant="h2">Additional resources</Header>}>
+        <SpaceBetween size="xs" direction="vertical">
+          <Link external href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/">
+            Route 53 Developer Guide
+          </Link>
+          <Link external href="https://docs.aws.amazon.com/Route53/latest/APIReference/">
+            Route 53 API Reference
+          </Link>
+          <Link external href="https://aws.amazon.com/route53/pricing/">
+            Route 53 pricing
+          </Link>
         </SpaceBetween>
       </Container>
     </SpaceBetween>
@@ -94,7 +126,7 @@ export default function HomePage() {
   const [user, setUser] = useState<{ id: string; username: string } | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) {
       router.replace("/login");
       return;
@@ -104,7 +136,7 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     try { await auth.logout(); } catch {}
-    localStorage.removeItem("token");
+    clearTokens();
     router.push("/login");
   };
 

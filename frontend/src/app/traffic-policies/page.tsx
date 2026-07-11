@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/api";
+import { auth, clearTokens } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider } from "@/components/NotificationFlashbar";
 import { ComingSoon } from "@/components/ComingSoon";
@@ -12,14 +12,14 @@ export default function TrafficPoliciesPage() {
   const [user, setUser] = useState<{ id: string; username: string } | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.replace("/login"); return; }
     auth.me().then(setUser).catch(() => router.replace("/login"));
   }, [router]);
 
   const handleLogout = async () => {
     try { await auth.logout(); } catch {}
-    localStorage.removeItem("token");
+    clearTokens();
     router.push("/login");
   };
 

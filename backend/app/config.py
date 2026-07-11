@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./route53.db")
     SECRET_KEY: str = os.getenv("SECRET_KEY", "route53-clone-secret-key-change-in-prod")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
 
     @property

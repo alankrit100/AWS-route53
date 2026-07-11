@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
+import secrets
 
+import bcrypt
 import jwt
 from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -8,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
 from app.exceptions import Unauthorized
-from app.models import User
+from app.models import User, RefreshToken
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -23,6 +25,36 @@ def create_token(user: User) -> str:
         "exp": expire,
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_refresh_token(user_id: str, db: Session) -> str:
+    raw = secrets.token_hex(32)
+    hashed = bcrypt.hashpw(raw.encode(), bcrypt.gensalt()).decode()
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)).isoformat()
+
+    rt = RefreshToken(
+        token_hash=hashed,
+        user_id=user_id,
+        expires_at=expires_at,
+    )
+    db.add(rt)
+    db.commit()
+    return raw
+
+
+def validate_refresh_token(raw: str, db: Session) -> User:
+    tokens = db.query(RefreshToken).join(User).filter(User.id == RefreshToken.user_id).all()
+    for rt in tokens:
+        if bcrypt.checkpw(raw.encode(), rt.token_hash.encode()):
+            if datetime.fromisoformat(rt.expires_at) < datetime.now(timezone.utc):
+                raise Unauthorized("Refresh token has expired.")
+            return rt.user
+    raise Unauthorized("Invalid refresh token.")
+
+
+def clear_user_refresh_tokens(user_id: str, db: Session):
+    db.query(RefreshToken).filter(RefreshToken.user_id == user_id).delete()
+    db.commit()
 
 
 def get_current_user(

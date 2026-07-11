@@ -20,7 +20,7 @@ import TextContent from "@cloudscape-design/components/text-content";
 import Container from "@cloudscape-design/components/container";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import Link from "@cloudscape-design/components/link";
-import { auth, zones, records, tags, exports_ } from "@/lib/api";
+import { auth, zones, records, tags, exports_, clearTokens } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider, useNotification } from "@/components/NotificationFlashbar";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -52,6 +52,8 @@ function ZoneDetailContent() {
   const [newType, setNewType] = useState({ label: "A", value: "A" });
   const [newTTL, setNewTTL] = useState("300");
   const [newValue, setNewValue] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editValue, setEditValue] = useState("");
   const [error, setError] = useState("");
 
   const [showTagModal, setShowTagModal] = useState(false);
@@ -159,15 +161,17 @@ function ZoneDetailContent() {
   const handleEditRecord = async () => {
     if (!editRecord) return;
     try {
+      const values = editValue.split("\n").filter((v) => v.trim());
+      if (values.length === 0) { setError("At least one value is required"); return; }
       await records.change(zoneId, {
         change_batch: {
           changes: [{
             action: "UPSERT",
             resource_record_set: {
-              name: editRecord.name,
+              name: editName || editRecord.name,
               type: editRecord.type,
               ttl: parseInt(newTTL) || 300,
-              resource_records: (editRecord.value ? JSON.parse(editRecord.value) : []).map((v: string) => ({ value: v })),
+              resource_records: values.map((v) => ({ value: v.trim() })),
             },
           }],
         },
@@ -429,6 +433,8 @@ function ZoneDetailContent() {
                             ariaLabel={`Actions for ${item.name}`}
                             onItemClick={({ detail }) => {
                               setEditRecord(item);
+                              setEditName(item.name);
+                              setEditValue(formatRecordValues(item.value).join("\n"));
                               setNewTTL(String(item.ttl));
                               setError("");
                               if (detail.id === "edit") setShowEditModal(true);
@@ -572,9 +578,15 @@ function ZoneDetailContent() {
         <Form>
           <SpaceBetween size="m" direction="vertical">
             {error ? <Alert key="error" type="error">{error}</Alert> : null}
-            <TextContent key="info">
-              <p><strong>{editRecord?.name}</strong> ({editRecord?.type})</p>
-            </TextContent>
+            <FormField key="info" label="Record type">
+              <Input value={editRecord?.type || ""} disabled />
+            </FormField>
+            <FormField key="name" label="Record name">
+              <Input value={editName} onChange={(e) => setEditName(e.detail.value)} />
+            </FormField>
+            <FormField key="value" label="Value" description="One value per line">
+              <Input value={editValue} onChange={(e) => setEditValue(e.detail.value)} />
+            </FormField>
             <FormField key="ttl" label="TTL (seconds)">
               <Input type="number" value={newTTL} onChange={(e) => setNewTTL(e.detail.value)} />
             </FormField>
@@ -691,14 +703,14 @@ export default function ZoneDetailPage() {
   const [user, setUser] = useState<{ id: string; username: string } | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) { router.replace("/login"); return; }
     auth.me().then(setUser).catch(() => router.replace("/login"));
   }, [router]);
 
   const handleLogout = async () => {
     try { await auth.logout(); } catch {}
-    localStorage.removeItem("token");
+    clearTokens();
     router.push("/login");
   };
 
