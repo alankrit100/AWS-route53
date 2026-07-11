@@ -34,17 +34,11 @@ export function AwsTopNavigation({ username, onLogout, isDark, onToggleDark }: A
           },
         },
         {
-          type: "menu-dropdown",
-          iconName: "settings",
-          ariaLabel: "Settings",
-          title: "Settings",
-          items: [
-            { id: "theme", text: isDark ? "Light mode" : "Dark mode" },
-            { id: "preferences", text: "Preferences", disabled: true },
-          ],
-          onItemClick: ({ detail }) => {
-            if (detail.id === "theme") onToggleDark();
-          },
+          type: "button",
+          iconName: "light-dark",
+          ariaLabel: isDark ? "Switch to light mode" : "Switch to dark mode",
+          title: isDark ? "Light mode" : "Dark mode",
+          onClick: onToggleDark,
         },
         {
           type: "menu-dropdown",
