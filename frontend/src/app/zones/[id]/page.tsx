@@ -23,7 +23,6 @@ import Link from "@cloudscape-design/components/link";
 import { auth, zones, records, tags, exports_, clearTokens } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider, useNotification } from "@/components/NotificationFlashbar";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import type { HostedZone, RecordResponse, TagItem } from "@/lib/types";
 import { RECORD_TYPES } from "@/lib/types";
 
@@ -63,16 +62,6 @@ function ZoneDetailContent() {
   const [importText, setImportText] = useState("");
   const [selectedRecords, setSelectedRecords] = useState<RecordResponse[]>([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-  useKeyboardShortcuts([
-    { keys: "c", description: "Create record", action: () => {
-      setNewName(""); setNewValue(""); setNewTTL("300");
-      setNewType({ label: "A", value: "A" }); setError(""); setShowCreateModal(true);
-    }},
-    { keys: "n", description: "Create record", action: () => {
-      setNewName(""); setNewValue(""); setNewTTL("300");
-      setNewType({ label: "A", value: "A" }); setError(""); setShowCreateModal(true);
-    }},
-  ]);
 
   const handleBulkDelete = async () => {
     if (selectedRecords.length === 0) return;

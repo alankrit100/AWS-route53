@@ -5,7 +5,6 @@ import AppLayoutWrapper from "@cloudscape-design/components/app-layout";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import { useNotification } from "./NotificationFlashbar";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { AwsTopNavigation } from "./AwsTopNavigation";
 import { AwsSideNavigation } from "./AwsSideNavigation";
 
@@ -20,8 +19,6 @@ export function AppLayout({ children, onLogout, username }: AppLayoutProps) {
   const router = useRouter();
   const { addNotification } = useNotification();
   const { isDark, toggle } = useDarkMode();
-
-  useKeyboardShortcuts([]);
 
   const breadcrumbs = (() => {
     const parts = pathname.split("/").filter(Boolean);

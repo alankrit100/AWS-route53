@@ -19,7 +19,6 @@ import Link from "@cloudscape-design/components/link";
 import { auth, zones, clearTokens } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider, useNotification } from "@/components/NotificationFlashbar";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import type { HostedZone } from "@/lib/types";
 
 function ZonesContent() {
@@ -39,14 +38,6 @@ function ZonesContent() {
   const [callerRef, setCallerRef] = useState("");
   const [error, setError] = useState("");
   const [selectedItems, setSelectedItems] = useState<HostedZone[]>([]);
-  useKeyboardShortcuts([
-    { keys: "c", description: "Create hosted zone", action: () => {
-      setNewName(""); setNewComment(""); setCallerRef(""); setError(""); setShowCreateModal(true);
-    }},
-    { keys: "n", description: "Create hosted zone", action: () => {
-      setNewName(""); setNewComment(""); setCallerRef(""); setError(""); setShowCreateModal(true);
-    }},
-  ]);
 
   const fetchZones = async (p?: number, s?: string) => {
     setLoading(true);
