@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: route53-clone-backend
+    runtime: python
+    repo: https://github.com/yourusername/route53-clone
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && python run.py
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://your-vercel-frontend.vercel.app
+      - key: DATABASE_URL
+        value: sqlite:////data/route53.db
+    disk:
+      name: sqlite-data
+      mountPath: /data
+      sizeGB: 1
