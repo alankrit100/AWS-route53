@@ -47,7 +47,7 @@ export default function LoginPage() {
       }}
     >
       <SpaceBetween size="xl" direction="vertical" alignItems="center">
-        <img src="/route53-logo.svg" alt="Route 53" width="32" height="32" />
+        <img src="/aws-logo.svg" alt="AWS" width="45" height="30" />
 
         <div style={{ width: "100%", maxWidth: "400px" }}>
           <Container
