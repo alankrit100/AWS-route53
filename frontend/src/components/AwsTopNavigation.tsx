@@ -16,8 +16,8 @@ export function AwsTopNavigation({ username, onLogout, isDark, onToggleDark }: A
         href: "/",
         title: "Route 53",
         logo: {
-          src: "/aws-logo.svg",
-          alt: "AWS",
+          src: "/route53-logo.svg",
+          alt: "Route 53",
         },
       }}
       utilities={[
