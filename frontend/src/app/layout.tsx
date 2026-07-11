@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import "@cloudscape-design/global-styles/index.css";
 import "@/styles/aws-overrides.css";
 import "@/styles/aws-dark-overrides.css";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Route 53",
-  description: "Route 53 Console Clone",
+  title: "Route 53 - AWS Console",
+  description: "Amazon Route 53 Console Clone",
 };
 
 export default function RootLayout({

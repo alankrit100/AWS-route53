@@ -1,194 +1,76 @@
 /*
- * AWS Route53 Console — Pixel-perfect CSS overrides
- * Targets Cloudscape's actual compiled CSS class patterns.
+ * AWS Console — minimal theme overrides on top of Cloudscape.
+ * Cloudscape already implements the AWS visual language; we only
+ * nudge the chrome (header / sidebar) and links to match Route 53.
  */
 
-/* ── Top Navigation Wrapper: dark AWS header ── */
+/* Top navigation: AWS dark header bar */
 [class*="awsui_top-navigation"] {
   background-color: #232f3e !important;
 }
 
-[class*="awsui_top-navigation"] [class*="awsui_title"] {
+[class*="awsui_top-navigation"] [class*="awsui_identity"] [class*="awsui_title"],
+[class*="awsui_top-navigation"] [class*="awsui_utility"] {
   color: #ffffff !important;
 }
 
-[class*="awsui_top-navigation"] [class*="awsui_text"] {
-  color: #ffffff !important;
-}
-
-/* ── Side Navigation Wrapper: dark sidebar ── */
+/* Side navigation: dark sidebar */
 [class*="awsui_side-navigation"] {
   background-color: #232f3e !important;
 }
 
-/* Side nav items — inactive: light gray text */
+[class*="awsui_side-navigation"] [class*="awsui_header"],
+[class*="awsui_side-navigation"] [class*="awsui_header-link"] {
+  color: #ffffff !important;
+}
+
 [class*="awsui_side-navigation"] [class*="awsui_link"]:not([class*="awsui_link-active"]) {
   color: #d5dbdb !important;
 }
 
-/* Side nav items — active: white text, highlighted bg, orange left border */
 [class*="awsui_side-navigation"] [class*="awsui_link-active"] {
   color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
   border-left: 3px solid #0972d3 !important;
   border-radius: 0 !important;
   font-weight: 700 !important;
 }
 
-/* Side nav section headers */
+[class*="awsui_side-navigation"] [class*="awsui_link"]:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+[class*="awsui_side-navigation"] [class*="awsui_divider"] {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
 [class*="awsui_side-navigation"] [class*="awsui_section-group"] {
   color: #95a5a6 !important;
 }
 
-/* Side nav header (Route 53 title) */
-[class*="awsui_side-navigation"] [class*="awsui_header"] {
-  color: #ffffff !important;
-}
-
-[class*="awsui_side-navigation"] [class*="awsui_header-link"] {
-  color: #ffffff !important;
-}
-
-/* Side nav divider lines */
-[class*="awsui_side-navigation"] [class*="awsui_divider"] {
-  border-color: rgba(255, 255, 255, 0.15) !important;
-}
-
-/* Side nav link hover — overrides Cloudscape default blue hover on dark bg */
-[class*="awsui_side-navigation"] [class*="awsui_link"]:hover {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-/* ── App Layout: content area background ── */
+/* Content background */
 [class*="awsui_app-layout"] [class*="awsui_content"] {
   background-color: #f2f3f3 !important;
 }
 
-/* ── Page background ── */
-body, html {
-  background-color: #f2f3f3 !important;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Amazon Ember",
-    Roboto, Oxygen, Ubuntu, sans-serif !important;
-}
-
-/* ── Buttons: AWS style (squared, thin border, correct colors) ── */
-:root {
-  --border-radius-button: 3px;
-  --border-width-button: 1px;
-}
-
-/* Top nav utility buttons (e.g. admin/sign out) — white text on dark header */
-[class*="awsui_top-navigation"] [class*="awsui_utility"] {
-  color: #ffffff !important;
-}
-
-/* ── Links: AWS orange accent ── */
+/* Links */
 a {
-  color: #0972d3 !important;
-  text-decoration: none !important;
+  color: #0972d3;
 }
 
 a:hover {
-  color: #033160 !important;
-  text-decoration: underline !important;
+  color: #033160;
+  text-decoration: underline;
 }
 
-/* ── Tables: match AWS console table styling ── */
-[class*="awsui_table"] [class*="awsui_header-cell"] {
-  background-color: #f6f6f9 !important;
-  border-bottom: 2px solid #eaeded !important;
-  font-weight: 600 !important;
-  font-size: 14px !important;
-  color: #545b64 !important;
-}
-
-[class*="awsui_table"] [class*="awsui_cell"] {
-  border-bottom: 1px solid #eaeded !important;
-  padding: 8px 12px !important;
-  font-size: 14px !important;
-}
-
-/* ── Containers / Cards: white bg, gray border ── */
-[class*="awsui_container"] {
-  border: 1px solid #d5dbdb !important;
-  border-radius: 2px !important;
-  box-shadow: none !important;
-}
-
-[class*="awsui_container"] [class*="awsui_header"] {
-  border-bottom: 1px solid #eaeded !important;
-  padding: 12px 20px !important;
-}
-
-/* ── Modals: match AWS modal spacing ── */
-[class*="awsui_modal"] [class*="awsui_header"] {
-  font-size: 18px !important;
-  font-weight: 700 !important;
-  border-bottom: 1px solid #eaeded !important;
-  padding: 20px 24px !important;
-}
-
-[class*="awsui_modal"] [class*="awsui_content"] {
-  padding: 20px 24px !important;
-}
-
-[class*="awsui_modal"] [class*="awsui_footer"] {
-  padding: 12px 24px !important;
-  border-top: 1px solid #eaeded !important;
-}
-
-/* ── Form fields ── */
-[class*="awsui_form-field"] [class*="awsui_label"] {
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  color: #0f141a !important;
-}
-
-/* ── Input fields ── */
-[class*="awsui_input"] input,
-[class*="awsui_select"] [class*="awsui_trigger"] {
-  border-color: #aab7b8 !important;
-  border-radius: 2px !important;
-}
-
-[class*="awsui_input"] input:focus,
-[class*="awsui_select"] [class*="awsui_trigger"]:focus {
-  border-color: #0972d3 !important;
-  box-shadow: 0 0 0 1px #0972d3 !important;
-}
-
-/* ── Tabs: AWS blue active indicator ── */
-[class*="awsui_tabs"] [class*="awsui_tab-active"] {
-  border-bottom-color: #0972d3 !important;
-}
-
-[class*="awsui_tabs"] [class*="awsui_tab-label"] {
-  font-size: 14px !important;
-}
-
-/* ── Breadcrumbs ── */
-[class*="awsui_breadcrumb-group"] {
-  font-size: 12px !important;
-}
-
-/* ── Pagination ── */
-[class*="awsui_pagination"] {
-  font-size: 13px !important;
-}
-
-/* ── Flashbar / Notifications ── */
-[class*="awsui_flashbar"] {
-  font-size: 14px !important;
-}
-
-/* ── Typography ── */
-h1 { font-size: 24px !important; font-weight: 700 !important; color: #0f141a !important; }
-h2 { font-size: 18px !important; font-weight: 700 !important; color: #0f141a !important; }
-h3 { font-size: 16px !important; font-weight: 600 !important; color: #0f141a !important; }
-
-/* ── Zone detail: header back button area ── */
+/* Page title sizing */
 [class*="awsui_header"] [class*="awsui_heading-text"] {
-  font-size: 24px !important;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+[class*="awsui_header"] [class*="awsui_heading-text-secondary"] {
+  font-size: 18px;
+  font-weight: 700;
 }

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Header from "@cloudscape-design/components/header";
 import Table from "@cloudscape-design/components/table";
 import Button from "@cloudscape-design/components/button";
+import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Input from "@cloudscape-design/components/input";
 import Pagination from "@cloudscape-design/components/pagination";
@@ -17,6 +18,8 @@ import Tabs from "@cloudscape-design/components/tabs";
 import Alert from "@cloudscape-design/components/alert";
 import TextContent from "@cloudscape-design/components/text-content";
 import Container from "@cloudscape-design/components/container";
+import ColumnLayout from "@cloudscape-design/components/column-layout";
+import Link from "@cloudscape-design/components/link";
 import { auth, zones, records, tags, exports_ } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider, useNotification } from "@/components/NotificationFlashbar";
@@ -258,46 +261,78 @@ function ZoneDetailContent() {
     CAA: "Flags Tag Value, e.g. 0 issue \"letsencrypt.org\"",
   };
 
+  const formatRecordValues = (value: string) => {
+    try {
+      const vals = JSON.parse(value);
+      return Array.isArray(vals) ? vals : [value];
+    } catch {
+      return [value];
+    }
+  };
+
   return (
-    <div style={{ padding: "20px" }}>
-      <Header
-        variant="h1"
-        actions={
-          <SpaceBetween direction="horizontal" size="xs">
-            <Button onClick={() => router.push("/zones")}>Back to zones</Button>
-            <Button onClick={handleExportJson}>Export JSON</Button>
-            <Button onClick={handleExportBind}>Export BIND</Button>
-            <Button onClick={() => { setImportText(""); setError(""); setShowImportModal(true); }}>
-              Import BIND
-            </Button>
-            <Button variant="primary" onClick={() => {
-              setNewName("");
-              setNewValue("");
-              setNewTTL("300");
-              setNewType({ label: "A", value: "A" });
-              setError("");
-              setShowCreateModal(true);
-            }}>
-              Create record
-            </Button>
-          </SpaceBetween>
-        }
-      >
-        {zone?.name || "Loading..."}
-      </Header>
+    <div style={{ padding: "24px" }}>
+      <SpaceBetween size="l" direction="vertical">
+        <Header
+          variant="h1"
+          description="Manage the records and tags for this hosted zone."
+          actions={
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button onClick={() => router.push("/zones")}>Back to zones</Button>
+              <ButtonDropdown
+                items={[
+                  { id: "json", text: "Export as JSON" },
+                  { id: "bind", text: "Export as BIND" },
+                  { id: "import", text: "Import BIND zone file" },
+                ]}
+                variant="normal"
+                onItemClick={({ detail }) => {
+                  if (detail.id === "json") handleExportJson();
+                  if (detail.id === "bind") handleExportBind();
+                  if (detail.id === "import") { setImportText(""); setError(""); setShowImportModal(true); }
+                }}
+              >
+                Zone actions
+              </ButtonDropdown>
+              <Button variant="primary" onClick={() => {
+                setNewName("");
+                setNewValue("");
+                setNewTTL("300");
+                setNewType({ label: "A", value: "A" });
+                setError("");
+                setShowCreateModal(true);
+              }}>
+                Create record
+              </Button>
+            </SpaceBetween>
+          }
+        >
+          {zone?.name || "Loading..."}
+        </Header>
 
-      {zone && (
-        <Container header={<Header variant="h2">Zone details</Header>}>
-          <TextContent>
-            <p><strong>ID:</strong> {zone.id}</p>
-            <p><strong>Type:</strong> {zone.config.private_zone ? "Private" : "Public"}</p>
-            <p><strong>Record count:</strong> {zone.resource_record_set_count}</p>
-            <p><strong>Comment:</strong> {zone.config.comment || "-"}</p>
-          </TextContent>
-        </Container>
-      )}
+        {zone && (
+          <Container header={<Header variant="h2">Hosted zone details</Header>}>
+            <ColumnLayout columns={4} variant="text-grid">
+              <div>
+                <Box variant="awsui-key-label">Hosted zone ID</Box>
+                <Box variant="span">{zone.id}</Box>
+              </div>
+              <div>
+                <Box variant="awsui-key-label">Type</Box>
+                <Box variant="span">{zone.config.private_zone ? "Private" : "Public"}</Box>
+              </div>
+              <div>
+                <Box variant="awsui-key-label">Record count</Box>
+                <Box variant="span">{zone.resource_record_set_count}</Box>
+              </div>
+              <div>
+                <Box variant="awsui-key-label">Comment</Box>
+                <Box variant="span">{zone.config.comment || "—"}</Box>
+              </div>
+            </ColumnLayout>
+          </Container>
+        )}
 
-      <div style={{ marginTop: "20px" }}>
         <Tabs
           activeTabId={activeTab}
           onChange={(e) => setActiveTab(e.detail.activeTabId)}
@@ -307,10 +342,10 @@ function ZoneDetailContent() {
               label: "Records",
               content: (
                 <SpaceBetween size="m" direction="vertical">
-                  <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                    <div style={{ width: "250px" }}>
+                  <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+                    <div style={{ width: "280px" }}>
                       <Input
-                        placeholder="Search by name"
+                        placeholder="Search by record name"
                         value={search}
                         onChange={(e) => {
                           setSearch(e.detail.value);
@@ -318,7 +353,7 @@ function ZoneDetailContent() {
                         }}
                       />
                     </div>
-                    <div style={{ width: "150px" }}>
+                    <div style={{ width: "160px" }}>
                       <Select
                         placeholder="Filter by type"
                         selectedOption={typeFilter ? { label: typeFilter, value: typeFilter } : null}
@@ -333,13 +368,13 @@ function ZoneDetailContent() {
                         ]}
                       />
                     </div>
+                    {selectedRecords.length > 0 && (
+                      <Button onClick={() => setShowBulkDeleteModal(true)}>
+                        Delete selected ({selectedRecords.length})
+                      </Button>
+                    )}
                   </div>
 
-                  {selectedRecords.length > 0 && (
-                    <Button onClick={() => setShowBulkDeleteModal(true)}>
-                      Delete {selectedRecords.length} selected
-                    </Button>
-                  )}
                   <Table
                     loading={loading}
                     sortingDisabled
@@ -350,8 +385,9 @@ function ZoneDetailContent() {
                     columnDefinitions={[
                       {
                         id: "name",
-                        header: "Name",
+                        header: "Record name",
                         cell: (item) => item.name,
+                        isRowHeader: true,
                       },
                       {
                         id: "type",
@@ -359,16 +395,14 @@ function ZoneDetailContent() {
                         cell: (item) => item.type,
                       },
                       {
-                        id: "value",
-                        header: "Value",
-                        cell: (item) => {
-                          try {
-                            const vals = JSON.parse(item.value);
-                            return Array.isArray(vals) ? vals.join(", ") : item.value;
-                          } catch {
-                            return item.value;
-                          }
-                        },
+                        id: "routing",
+                        header: "Routing policy",
+                        cell: () => "Simple",
+                      },
+                      {
+                        id: "alias",
+                        header: "Alias",
+                        cell: (item) => (item.alias_target ? "Yes" : "No"),
                       },
                       {
                         id: "ttl",
@@ -376,26 +410,30 @@ function ZoneDetailContent() {
                         cell: (item) => String(item.ttl),
                       },
                       {
+                        id: "value",
+                        header: "Value / Route traffic to",
+                        cell: (item) => formatRecordValues(item.value).join(", "),
+                      },
+                      {
                         id: "actions",
                         header: "Actions",
                         cell: (item) => (
-                          <SpaceBetween size="xs" direction="horizontal">
-                            <Button variant="inline-link" onClick={() => {
+                          <ButtonDropdown
+                            items={[
+                              { id: "edit", text: "Edit" },
+                              { id: "delete", text: "Delete" },
+                            ]}
+                            variant="inline-icon"
+                            iconName="ellipsis"
+                            ariaLabel={`Actions for ${item.name}`}
+                            onItemClick={({ detail }) => {
                               setEditRecord(item);
                               setNewTTL(String(item.ttl));
                               setError("");
-                              setShowEditModal(true);
-                            }}>
-                              Edit
-                            </Button>
-                            <Button variant="inline-link" onClick={() => {
-                              setEditRecord(item);
-                              setError("");
-                              setShowDeleteModal(true);
-                            }}>
-                              Delete
-                            </Button>
-                          </SpaceBetween>
+                              if (detail.id === "edit") setShowEditModal(true);
+                              if (detail.id === "delete") setShowDeleteModal(true);
+                            }}
+                          />
                         ),
                       },
                     ]}
@@ -427,14 +465,14 @@ function ZoneDetailContent() {
               label: "Tags",
               content: (
                 <SpaceBetween size="m" direction="vertical">
-                  <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+                  <div style={{ display: "flex", gap: "16px", alignItems: "flex-end", flexWrap: "wrap" }}>
                     <FormField label="Key">
                       <Input value={newTagKey} onChange={(e) => setNewTagKey(e.detail.value)} />
                     </FormField>
                     <FormField label="Value">
                       <Input value={newTagValue} onChange={(e) => setNewTagValue(e.detail.value)} />
                     </FormField>
-                    <Button onClick={handleAddTag}>Add tag</Button>
+                    <Button variant="primary" onClick={handleAddTag}>Add tag</Button>
                   </div>
 
                   <Table
@@ -466,43 +504,53 @@ function ZoneDetailContent() {
             },
           ]}
         />
-      </div>
+      </SpaceBetween>
 
       <Modal
         visible={showCreateModal}
         onDismiss={() => setShowCreateModal(false)}
         header="Create record"
         closeAriaLabel="Close modal"
+        footer={
+          <Box float="right">
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleCreateRecord}>Create record</Button>
+            </SpaceBetween>
+          </Box>
+        }
       >
         <Form>
-          {error && <Alert type="error">{error}</Alert>}
-          <FormField label="Record name" description="Fully qualified domain name">
-            <Input value={newName} onChange={(e) => setNewName(e.detail.value)} placeholder="www.example.com" />
-          </FormField>
-          <FormField label="Record type">
-            <Select
-              selectedOption={newType}
-              onChange={(e) => setNewType({ label: e.detail.selectedOption.value!, value: e.detail.selectedOption.value! })}
-              options={RECORD_TYPES.map((t) => ({ label: t, value: t }))}
-            />
-          </FormField>
-          <FormField label="TTL (seconds)">
-            <Input type="number" value={newTTL} onChange={(e) => setNewTTL(e.detail.value)} />
-          </FormField>
-          <FormField
-            label="Value"
-            description={recordTypeHelp[newType.value] || "Enter the record value(s), one per line"}
-          >
-            <Input
-              value={newValue}
-              onChange={(e) => setNewValue(e.detail.value)}
-              placeholder={newType.value === "MX" ? "10 mail.example.com." :
-                          newType.value === "SRV" ? "0 10 80 svc.example.com." :
-                          newType.value === "CAA" ? "0 issue \"letsencrypt.org\"" :
-                          "192.168.1.1"}
-            />
-          </FormField>
-          <Button variant="primary" onClick={handleCreateRecord}>Create</Button>
+          <SpaceBetween size="m" direction="vertical">
+            {error ? <Alert key="error" type="error">{error}</Alert> : null}
+            <FormField key="name" label="Record name" description="Fully qualified domain name">
+              <Input value={newName} onChange={(e) => setNewName(e.detail.value)} placeholder="www.example.com" />
+            </FormField>
+            <FormField key="type" label="Record type">
+              <Select
+                selectedOption={newType}
+                onChange={(e) => setNewType({ label: e.detail.selectedOption.value!, value: e.detail.selectedOption.value! })}
+                options={RECORD_TYPES.map((t) => ({ label: t, value: t }))}
+              />
+            </FormField>
+            <FormField key="ttl" label="TTL (seconds)">
+              <Input type="number" value={newTTL} onChange={(e) => setNewTTL(e.detail.value)} />
+            </FormField>
+            <FormField
+              key="value"
+              label="Value"
+              description={recordTypeHelp[newType.value] || "Enter the record value(s), one per line"}
+            >
+              <Input
+                value={newValue}
+                onChange={(e) => setNewValue(e.detail.value)}
+                placeholder={newType.value === "MX" ? "10 mail.example.com." :
+                            newType.value === "SRV" ? "0 10 80 svc.example.com." :
+                            newType.value === "CAA" ? "0 issue \"letsencrypt.org\"" :
+                            "192.168.1.1"}
+              />
+            </FormField>
+          </SpaceBetween>
         </Form>
       </Modal>
 
@@ -511,16 +559,25 @@ function ZoneDetailContent() {
         onDismiss={() => setShowEditModal(false)}
         header="Edit record"
         closeAriaLabel="Close modal"
+        footer={
+          <Box float="right">
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => setShowEditModal(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleEditRecord}>Save changes</Button>
+            </SpaceBetween>
+          </Box>
+        }
       >
         <Form>
-          {error && <Alert type="error">{error}</Alert>}
-          <TextContent>
-            <p><strong>{editRecord?.name}</strong> ({editRecord?.type})</p>
-          </TextContent>
-          <FormField label="TTL (seconds)">
-            <Input type="number" value={newTTL} onChange={(e) => setNewTTL(e.detail.value)} />
-          </FormField>
-          <Button variant="primary" onClick={handleEditRecord}>Save</Button>
+          <SpaceBetween size="m" direction="vertical">
+            {error ? <Alert key="error" type="error">{error}</Alert> : null}
+            <TextContent key="info">
+              <p><strong>{editRecord?.name}</strong> ({editRecord?.type})</p>
+            </TextContent>
+            <FormField key="ttl" label="TTL (seconds)">
+              <Input type="number" value={newTTL} onChange={(e) => setNewTTL(e.detail.value)} />
+            </FormField>
+          </SpaceBetween>
         </Form>
       </Modal>
 
@@ -529,16 +586,25 @@ function ZoneDetailContent() {
         onDismiss={() => setShowDeleteModal(false)}
         header="Delete record"
         closeAriaLabel="Close modal"
+        footer={
+          <Box float="right">
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleDeleteRecord}>Delete</Button>
+            </SpaceBetween>
+          </Box>
+        }
       >
         <Form>
-          {error && <Alert type="error">{error}</Alert>}
-          <TextContent>
-            <p>
-              Are you sure you want to delete{" "}
-              <strong>{editRecord?.name}</strong> ({editRecord?.type})?
-            </p>
-          </TextContent>
-          <Button variant="primary" onClick={handleDeleteRecord}>Delete</Button>
+          <SpaceBetween size="m" direction="vertical">
+            {error ? <Alert key="error" type="error">{error}</Alert> : null}
+            <TextContent key="confirm">
+              <p>
+                Are you sure you want to delete{" "}
+                <strong>{editRecord?.name}</strong> ({editRecord?.type})?
+              </p>
+            </TextContent>
+          </SpaceBetween>
         </Form>
       </Modal>
 
@@ -547,13 +613,22 @@ function ZoneDetailContent() {
         onDismiss={() => setShowBulkDeleteModal(false)}
         header="Delete records"
         closeAriaLabel="Close modal"
+        footer={
+          <Box float="right">
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => setShowBulkDeleteModal(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleBulkDelete}>Delete</Button>
+            </SpaceBetween>
+          </Box>
+        }
       >
         <Form>
-          {error && <Alert type="error">{error}</Alert>}
-          <TextContent>
-            <p>Are you sure you want to delete {selectedRecords.length} records?</p>
-          </TextContent>
-          <Button variant="primary" onClick={handleBulkDelete}>Delete</Button>
+          <SpaceBetween size="m" direction="vertical">
+            {error ? <Alert key="error" type="error">{error}</Alert> : null}
+            <TextContent key="confirm">
+              <p>Are you sure you want to delete {selectedRecords.length} records?</p>
+            </TextContent>
+          </SpaceBetween>
         </Form>
       </Modal>
 
@@ -562,30 +637,40 @@ function ZoneDetailContent() {
         onDismiss={() => setShowImportModal(false)}
         header="Import BIND zone file"
         closeAriaLabel="Close modal"
+        footer={
+          <Box float="right">
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => setShowImportModal(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleImportBind}>Import</Button>
+            </SpaceBetween>
+          </Box>
+        }
       >
         <Form>
-          {error && <Alert type="error">{error}</Alert>}
-          <FormField
-            label="Zone file content"
-            description="Paste the contents of a BIND zone file"
-          >
-            <textarea
-              value={importText}
-              onChange={(e) => setImportText(e.target.value)}
-              style={{
-                width: "100%",
-                minHeight: "200px",
-                fontFamily: "monospace",
-                fontSize: "12px",
-                padding: "8px",
-                border: "1px solid #aab7b8",
-                borderRadius: "2px",
-                resize: "vertical",
-              }}
-              placeholder={"; BIND zone file\n$ORIGIN example.com.\n$TTL 3600\n@  IN  A  192.168.1.1\nwww  IN  A  192.168.1.2"}
-            />
-          </FormField>
-          <Button variant="primary" onClick={handleImportBind}>Import</Button>
+          <SpaceBetween size="m" direction="vertical">
+            {error ? <Alert key="error" type="error">{error}</Alert> : null}
+            <FormField
+              key="zonefile"
+              label="Zone file content"
+              description="Paste the contents of a BIND zone file"
+            >
+              <textarea
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                style={{
+                  width: "100%",
+                  minHeight: "240px",
+                  fontFamily: "monospace",
+                  fontSize: "12px",
+                  padding: "8px",
+                  border: "1px solid #aab7b8",
+                  borderRadius: "2px",
+                  resize: "vertical",
+                }}
+                placeholder={"; BIND zone file\n$ORIGIN example.com.\n$TTL 3600\n@  IN  A  192.168.1.1\nwww  IN  A  192.168.1.2"}
+              />
+            </FormField>
+          </SpaceBetween>
         </Form>
       </Modal>
 

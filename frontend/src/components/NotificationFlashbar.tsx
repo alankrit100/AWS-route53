@@ -39,7 +39,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   return (
     <NotificationContext.Provider value={{ addNotification }}>
       {notifications.length > 0 && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 10000 }}>
+        <div style={{ position: "fixed", top: "48px", left: 0, right: 0, zIndex: 10000 }}>
           <Flashbar
             items={notifications.map((n) => ({
               type: n.type,

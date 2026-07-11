@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@cloudscape-design/components/header";
 import Table from "@cloudscape-design/components/table";
 import Button from "@cloudscape-design/components/button";
+import ButtonDropdown from "@cloudscape-design/components/button-dropdown";
 import SpaceBetween from "@cloudscape-design/components/space-between";
 import Input from "@cloudscape-design/components/input";
 import Pagination from "@cloudscape-design/components/pagination";
@@ -14,6 +15,7 @@ import FormField from "@cloudscape-design/components/form-field";
 import Form from "@cloudscape-design/components/form";
 import Alert from "@cloudscape-design/components/alert";
 import TextContent from "@cloudscape-design/components/text-content";
+import Link from "@cloudscape-design/components/link";
 import { auth, zones } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider, useNotification } from "@/components/NotificationFlashbar";
@@ -106,37 +108,35 @@ function ZonesContent() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <Header
-        variant="h1"
-        actions={
-          <Button variant="primary" onClick={() => {
-            setNewName("");
-            setNewComment("");
-            setCallerRef("");
-            setError("");
-            setShowCreateModal(true);
-          }}>
-            Create hosted zone
-          </Button>
-        }
-      >
-        Hosted zones
-      </Header>
-
-      <SpaceBetween size="m" direction="vertical">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ width: "300px" }}>
-            <Input
-              placeholder="Search by domain name"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.detail.value);
-                fetchZones(1, e.detail.value);
-              }}
-            />
-          </div>
-        </div>
+    <div style={{ padding: "24px" }}>
+      <SpaceBetween size="l" direction="vertical">
+        <Header
+          variant="h1"
+          description="A hosted zone is a container for records for a specified domain."
+          actions={
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="primary" onClick={() => {
+                setNewName("");
+                setNewComment("");
+                setCallerRef("");
+                setError("");
+                setShowCreateModal(true);
+              }}>
+                Create hosted zone
+              </Button>
+              <ButtonDropdown
+                items={[
+                  { id: "import", text: "Import zone file", disabled: true },
+                  { id: "export", text: "Export all zones", disabled: true },
+                ]}
+                variant="icon"
+                ariaLabel="Actions"
+              />
+            </SpaceBetween>
+          }
+        >
+          Hosted zones
+        </Header>
 
         <Table
           loading={loading}
@@ -148,17 +148,11 @@ function ZonesContent() {
               id: "name",
               header: "Domain name",
               cell: (item) => (
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    router.push(`/zones/${item.id}`);
-                  }}
-                  style={{ textDecoration: "none" }}
-                >
+                <Link href="#" onFollow={() => router.push(`/zones/${item.id}`)}>
                   {item.name}
-                </a>
+                </Link>
               ),
+              isRowHeader: true,
             },
             {
               id: "type",
@@ -167,46 +161,59 @@ function ZonesContent() {
             },
             {
               id: "record_count",
-              header: "Record count",
+              header: "Records",
               cell: (item) => String(item.resource_record_set_count),
             },
             {
               id: "comment",
               header: "Comment",
-              cell: (item) => item.config.comment || "-",
+              cell: (item) => item.config.comment || "—",
             },
             {
               id: "actions",
               header: "Actions",
               cell: (item) => (
-                <SpaceBetween size="xs" direction="horizontal">
-                  <Button
-                    variant="inline-link"
-                    onClick={() => {
+                <ButtonDropdown
+                  items={[
+                    { id: "view", text: "View details" },
+                    { id: "edit", text: "Edit comment" },
+                    { id: "delete", text: "Delete" },
+                  ]}
+                  variant="inline-icon"
+                  iconName="ellipsis"
+                  ariaLabel={`Actions for ${item.name}`}
+                  onItemClick={({ detail }) => {
+                    if (detail.id === "view") router.push(`/zones/${item.id}`);
+                    if (detail.id === "edit") {
                       setSelectedZone(item);
                       setNewComment(item.config.comment || "");
                       setError("");
                       setShowEditModal(true);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="inline-link"
-                    onClick={() => {
+                    }
+                    if (detail.id === "delete") {
                       setSelectedZone(item);
                       setError("");
                       setShowDeleteModal(true);
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </SpaceBetween>
+                    }
+                  }}
+                />
               ),
             },
           ]}
           items={zoneList}
           loadingText="Loading hosted zones"
+          filter={
+            <div style={{ width: "320px" }}>
+              <Input
+                placeholder="Search by domain name"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.detail.value);
+                  fetchZones(1, e.detail.value);
+                }}
+              />
+            </div>
+          }
           empty={
             <Box textAlign="center" color="inherit">
               <b>No hosted zones</b>
@@ -232,31 +239,49 @@ function ZonesContent() {
         onDismiss={() => setShowCreateModal(false)}
         header="Create hosted zone"
         closeAriaLabel="Close modal"
+        footer={
+          <Box float="right">
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleCreate}>Create hosted zone</Button>
+            </SpaceBetween>
+          </Box>
+        }
       >
         <Form>
-          {error && <Alert type="error">{error}</Alert>}
-          <FormField label="Domain name" description="Enter a fully qualified domain name">
-            <Input value={newName} onChange={(e) => setNewName(e.detail.value)} placeholder="example.com" />
-          </FormField>
-          <FormField label="Comment" description="Optional">
-            <Input value={newComment} onChange={(e) => setNewComment(e.detail.value)} />
-          </FormField>
-          <Button variant="primary" onClick={handleCreate}>Create</Button>
+          <SpaceBetween size="m" direction="vertical">
+            {error ? <Alert key="error" type="error">{error}</Alert> : null}
+            <FormField key="domain" label="Domain name" description="Enter a fully qualified domain name, such as example.com.">
+              <Input value={newName} onChange={(e) => setNewName(e.detail.value)} placeholder="example.com" />
+            </FormField>
+            <FormField key="comment" label="Comment" description="Optional">
+              <Input value={newComment} onChange={(e) => setNewComment(e.detail.value)} />
+            </FormField>
+          </SpaceBetween>
         </Form>
       </Modal>
 
       <Modal
         visible={showEditModal}
         onDismiss={() => setShowEditModal(false)}
-        header="Edit hosted zone comment"
+        header="Edit hosted zone"
         closeAriaLabel="Close modal"
+        footer={
+          <Box float="right">
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => setShowEditModal(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleEdit}>Save changes</Button>
+            </SpaceBetween>
+          </Box>
+        }
       >
         <Form>
-          {error && <Alert type="error">{error}</Alert>}
-          <FormField label="Comment">
-            <Input value={newComment} onChange={(e) => setNewComment(e.detail.value)} />
-          </FormField>
-          <Button variant="primary" onClick={handleEdit}>Save</Button>
+          <SpaceBetween size="m" direction="vertical">
+            {error ? <Alert key="error" type="error">{error}</Alert> : null}
+            <FormField key="comment" label="Comment">
+              <Input value={newComment} onChange={(e) => setNewComment(e.detail.value)} />
+            </FormField>
+          </SpaceBetween>
         </Form>
       </Modal>
 
@@ -265,16 +290,25 @@ function ZonesContent() {
         onDismiss={() => setShowDeleteModal(false)}
         header="Delete hosted zone"
         closeAriaLabel="Close modal"
+        footer={
+          <Box float="right">
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button variant="link" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleDelete}>Delete</Button>
+            </SpaceBetween>
+          </Box>
+        }
       >
         <Form>
-          {error && <Alert type="error">{error}</Alert>}
-          <TextContent>
-            <p>
-              Are you sure you want to delete{" "}
-              <strong>{selectedZone?.name}</strong>?
-            </p>
-          </TextContent>
-          <Button variant="primary" onClick={handleDelete}>Delete</Button>
+          <SpaceBetween size="m" direction="vertical">
+            {error ? <Alert key="error" type="error">{error}</Alert> : null}
+            <TextContent key="confirm">
+              <p>
+                Are you sure you want to delete the hosted zone{" "}
+                <strong>{selectedZone?.name}</strong>? This action cannot be undone.
+              </p>
+            </TextContent>
+          </SpaceBetween>
         </Form>
       </Modal>
 

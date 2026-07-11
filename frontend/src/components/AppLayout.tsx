@@ -1,12 +1,12 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import TopNavigation from "@cloudscape-design/components/top-navigation";
-import SideNavigation from "@cloudscape-design/components/side-navigation";
 import AppLayoutWrapper from "@cloudscape-design/components/app-layout";
 import BreadcrumbGroup from "@cloudscape-design/components/breadcrumb-group";
 import { useNotification } from "./NotificationFlashbar";
 import { useDarkMode } from "@/hooks/useDarkMode";
+import { AwsTopNavigation } from "./AwsTopNavigation";
+import { AwsSideNavigation } from "./AwsSideNavigation";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -19,8 +19,6 @@ export function AppLayout({ children, onLogout, username }: AppLayoutProps) {
   const router = useRouter();
   const { addNotification } = useNotification();
   const { isDark, toggle } = useDarkMode();
-
-  const activeHref = pathname;
 
   const breadcrumbs = (() => {
     const parts = pathname.split("/").filter(Boolean);
@@ -40,55 +38,14 @@ export function AppLayout({ children, onLogout, username }: AppLayoutProps) {
 
   return (
     <>
-      <TopNavigation
-        identity={{
-          href: "/",
-          title: "Route 53",
-        }}
-        utilities={[
-          { type: "button", text: username || "admin", variant: "primary-button" },
-          {
-            type: "button",
-            text: isDark ? "\u2600" : "\u263E",
-            ariaLabel: isDark ? "Switch to light mode" : "Switch to dark mode",
-            onClick: toggle,
-          },
-          {
-            type: "button",
-            text: "Sign out",
-            onClick: () => {
-              onLogout();
-              router.push("/login");
-            },
-          },
-        ]}
-        i18nStrings={{
-          searchIconAriaLabel: "Search",
-          searchDismissIconAriaLabel: "Close search",
-          overflowMenuTriggerText: "More",
-          overflowMenuTitleText: "All",
-          overflowMenuBackIconAriaLabel: "Back",
-        }}
+      <AwsTopNavigation
+        username={username}
+        onLogout={onLogout}
+        isDark={isDark}
+        onToggleDark={toggle}
       />
       <AppLayoutWrapper
-        navigation={
-          <SideNavigation
-            activeHref={activeHref}
-            header={{ text: "Route 53", href: "/" }}
-            onFollow={(e) => {
-              e.preventDefault();
-              router.push(e.detail.href);
-            }}
-            items={[
-              { type: "link", text: "Dashboard", href: "/" },
-              { type: "link", text: "Hosted zones", href: "/zones" },
-              { type: "link", text: "Health checks", href: "/health-checks" },
-              { type: "link", text: "Traffic policies", href: "/traffic-policies" },
-              { type: "link", text: "Resolver", href: "/resolver" },
-              { type: "link", text: "Profiles", href: "/profiles" },
-            ]}
-          />
-        }
+        navigation={<AwsSideNavigation activeHref={pathname} />}
         toolsHide={true}
         breadcrumbs={
           <BreadcrumbGroup

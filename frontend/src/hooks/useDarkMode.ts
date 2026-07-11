@@ -10,9 +10,11 @@ export function useDarkMode() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    const dark = stored === "true";
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const dark = stored === null ? prefersDark : stored === "true";
     setIsDark(dark);
     applyMode(dark ? Mode.Dark : Mode.Light);
+    document.body.classList.toggle("awsui-dark-mode", dark);
   }, []);
 
   const toggle = useCallback(() => {
@@ -20,6 +22,7 @@ export function useDarkMode() {
     setIsDark(next);
     localStorage.setItem(STORAGE_KEY, String(next));
     applyMode(next ? Mode.Dark : Mode.Light);
+    document.body.classList.toggle("awsui-dark-mode", next);
   }, [isDark]);
 
   return { isDark, toggle };

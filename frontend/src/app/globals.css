@@ -1,26 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f2f3f3;
+  --foreground: #16191f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#root,
+#__next {
+  height: 100%;
+}
+
+/* Respect Cloudscape's font stack; only set fallbacks */
+body {
+  font-family: "Amazon Ember", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Remove default link color override so Cloudscape tokens apply */
+a {
+  text-decoration: none;
+}
+
+/* Utility for AWS console-style page content background */
+.aws-console-page {
+  background-color: #f2f3f3;
+  min-height: 100%;
+}
+
+.awsui-dark-mode .aws-console-page {
+  background-color: #16191f;
 }

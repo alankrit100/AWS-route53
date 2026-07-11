@@ -9,6 +9,8 @@ import Input from "@cloudscape-design/components/input";
 import Container from "@cloudscape-design/components/container";
 import Header from "@cloudscape-design/components/header";
 import Alert from "@cloudscape-design/components/alert";
+import SpaceBetween from "@cloudscape-design/components/space-between";
+import Box from "@cloudscape-design/components/box";
 import { auth, setToken } from "@/lib/api";
 
 export default function LoginPage() {
@@ -35,51 +37,63 @@ export default function LoginPage() {
   return (
     <div
       style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
         minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
         backgroundColor: "#f2f3f3",
+        padding: "24px",
       }}
     >
-      <div style={{ width: "400px" }}>
-        <Container
-          header={<Header variant="h1">Route 53 Console</Header>}
-        >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmit();
-            }}
+      <SpaceBetween size="xl" direction="vertical" alignItems="center">
+        <img src="/aws-logo.svg" alt="AWS" width="80" height="30" />
+
+        <div style={{ width: "100%", maxWidth: "400px" }}>
+          <Container
+            header={<Header variant="h1">Sign in to Route 53</Header>}
           >
-            <Form>
-              {error && (
-                <Alert type="error" dismissible onDismiss={() => setError("")}>
-                  {error}
-                </Alert>
-              )}
-              <FormField label="Username">
-                <Input
-                  value={username}
-                  onChange={(e) => setUsername(e.detail.value)}
-                  placeholder="admin"
-                />
-              </FormField>
-              <FormField label="Password">
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.detail.value)}
-                  placeholder="admin123"
-                />
-              </FormField>
-              <Button variant="primary" loading={loading} formAction="submit">
-                Sign in
-              </Button>
-            </Form>
-          </form>
-        </Container>
-      </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit();
+              }}
+            >
+              <Form>
+                <SpaceBetween size="m" direction="vertical">
+                  {error && (
+                    <Alert type="error" dismissible onDismiss={() => setError("")}>
+                      {error}
+                    </Alert>
+                  )}
+                  <FormField label="Username">
+                    <Input
+                      value={username}
+                      onChange={(e) => setUsername(e.detail.value)}
+                      placeholder="admin"
+                    />
+                  </FormField>
+                  <FormField label="Password">
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.detail.value)}
+                      placeholder="admin123"
+                    />
+                  </FormField>
+                  <Button variant="primary" loading={loading} formAction="submit">
+                    Sign in
+                  </Button>
+                </SpaceBetween>
+              </Form>
+            </form>
+          </Container>
+        </div>
+
+        <Box variant="small" color="text-body-secondary" textAlign="center">
+          Use username <strong>admin</strong> and password <strong>admin123</strong>.
+        </Box>
+      </SpaceBetween>
     </div>
   );
 }
