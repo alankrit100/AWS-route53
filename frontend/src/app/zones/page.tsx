@@ -130,6 +130,7 @@ function ZonesContent() {
                   { id: "export", text: "Export all zones", disabled: true },
                 ]}
                 variant="icon"
+                expandToViewport
                 ariaLabel="Actions"
               />
             </SpaceBetween>
@@ -180,6 +181,7 @@ function ZonesContent() {
                     { id: "delete", text: "Delete" },
                   ]}
                   variant="icon"
+                  expandToViewport
                   ariaLabel={`Actions for ${item.name}`}
                   onItemClick={({ detail }) => {
                     if (detail.id === "view") router.push(`/zones/${item.id}`);

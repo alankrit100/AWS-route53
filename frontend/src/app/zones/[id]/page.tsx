@@ -286,6 +286,7 @@ function ZoneDetailContent() {
                   { id: "import", text: "Import BIND zone file" },
                 ]}
                 variant="normal"
+                expandToViewport
                 onItemClick={({ detail }) => {
                   if (detail.id === "json") handleExportJson();
                   if (detail.id === "bind") handleExportBind();
@@ -424,6 +425,7 @@ function ZoneDetailContent() {
                               { id: "delete", text: "Delete" },
                             ]}
                             variant="icon"
+                            expandToViewport
                             ariaLabel={`Actions for ${item.name}`}
                             onItemClick={({ detail }) => {
                               setEditRecord(item);
