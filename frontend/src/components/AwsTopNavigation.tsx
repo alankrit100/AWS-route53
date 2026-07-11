@@ -48,8 +48,8 @@ export function AwsTopNavigation({ username, onLogout, isDark, onToggleDark }: A
           ariaLabel: "Account",
           title: "Account",
           items: [
-            { id: "account", text: "Account settings", disabled: true },
-            { id: "support", text: "Support", disabled: true },
+            
+            
             { id: "signout", text: "Sign out" },
           ],
           onItemClick: ({ detail }) => {
