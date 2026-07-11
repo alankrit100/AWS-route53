@@ -32,6 +32,7 @@ export function AwsSideNavigation({ activeHref }: AwsSideNavigationProps) {
           { type: "link", text: "Profiles", href: "/profiles" },
         ]},
         { type: "divider" },
+        { type: "link", text: "Keyboard shortcuts", href: "/shortcuts" },
         { type: "link", text: "Route 53 documentation", href: "https://docs.aws.amazon.com/route53", external: true },
       ]}
     />

@@ -114,6 +114,14 @@ function DashboardContent() {
           </Link>
         </ColumnLayout>
       </Container>
+
+      <Box variant="small" color="text-body-secondary" textAlign="center">
+        Press <kbd style={{
+          padding: "1px 5px", fontSize: "12px", fontFamily: "monospace", fontWeight: 600,
+          backgroundColor: "#f2f3f3", border: "1px solid #aab7b8", borderRadius: "3px",
+          boxShadow: "0 1px 0 #aab7b8", lineHeight: "18px",
+        }}>?</kbd> to view keyboard shortcuts
+      </Box>
     </SpaceBetween>
   );
 }

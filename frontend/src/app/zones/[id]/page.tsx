@@ -24,7 +24,6 @@ import { auth, zones, records, tags, exports_, clearTokens } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider, useNotification } from "@/components/NotificationFlashbar";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { ShortcutsHelp } from "@/components/ShortcutsHelp";
 import type { HostedZone, RecordResponse, TagItem } from "@/lib/types";
 import { RECORD_TYPES } from "@/lib/types";
 
@@ -64,8 +63,12 @@ function ZoneDetailContent() {
   const [importText, setImportText] = useState("");
   const [selectedRecords, setSelectedRecords] = useState<RecordResponse[]>([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-  const { showHelp, setShowHelp } = useKeyboardShortcuts([
-    { key: "c", description: "Create record", action: () => {
+  useKeyboardShortcuts([
+    { keys: "c", description: "Create record", action: () => {
+      setNewName(""); setNewValue(""); setNewTTL("300");
+      setNewType({ label: "A", value: "A" }); setError(""); setShowCreateModal(true);
+    }},
+    { keys: "n", description: "Create record", action: () => {
       setNewName(""); setNewValue(""); setNewTTL("300");
       setNewType({ label: "A", value: "A" }); setError(""); setShowCreateModal(true);
     }},
@@ -686,14 +689,6 @@ function ZoneDetailContent() {
           </SpaceBetween>
         </Form>
       </Modal>
-
-      <ShortcutsHelp
-        visible={showHelp}
-        onDismiss={() => setShowHelp(false)}
-        shortcuts={[
-          { key: "c", description: "Create record" },
-        ]}
-      />
     </div>
   );
 }
