@@ -124,15 +124,6 @@ function ZonesContent() {
               }}>
                 Create hosted zone
               </Button>
-              <ButtonDropdown
-                items={[
-                  { id: "import", text: "Import zone file", disabled: true },
-                  { id: "export", text: "Export all zones", disabled: true },
-                ]}
-                variant="icon"
-                expandToViewport
-                ariaLabel="Actions"
-              />
             </SpaceBetween>
           }
         >
