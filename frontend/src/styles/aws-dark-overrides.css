@@ -1,0 +1,97 @@
+/*
+ * AWS Route53 Console — Dark mode CSS overrides
+ * Only covers custom overrides not handled by Cloudscape's built-in dark mode.
+ */
+
+/* ── Top Nav: darker background for dark mode ── */
+.awsui-dark-mode [class*="awsui_top-navigation"] {
+  background-color: #0f141a !important;
+}
+
+/* ── Side Nav: darker background ── */
+.awsui-dark-mode [class*="awsui_side-navigation"] {
+  background-color: #0f141a !important;
+}
+
+/* ── Content area & page background ── */
+.awsui-dark-mode [class*="awsui_app-layout"] [class*="awsui_content"],
+.awsui-dark-mode body,
+.awsui-dark-mode html {
+  background-color: #16191f !important;
+}
+
+/* ── Side nav items: adjust for dark mode ── */
+.awsui-dark-mode [class*="awsui_side-navigation"] [class*="awsui_link"]:not([class*="awsui_link-active"]) {
+  color: #95a5a6 !important;
+}
+
+.awsui-dark-mode [class*="awsui_side-navigation"] [class*="awsui_link-active"] {
+  border-left-color: #539fe5 !important;
+}
+
+/* ── Top nav utility buttons on dark background ── */
+.awsui-dark-mode [class*="awsui_top-navigation"] [class*="awsui_utility"] {
+  color: #d5dbdb !important;
+}
+
+/* ── Headings in dark mode ── */
+.awsui-dark-mode h1,
+.awsui-dark-mode h2,
+.awsui-dark-mode h3 {
+  color: #ffffff !important;
+}
+
+/* ── Links in dark mode ── */
+.awsui-dark-mode a {
+  color: #539fe5 !important;
+}
+
+.awsui-dark-mode a:hover {
+  color: #0972d3 !important;
+}
+
+/* ── Table header specific dark mode ── */
+.awsui-dark-mode [class*="awsui_table"] [class*="awsui_header-cell"] {
+  background-color: #1e2128 !important;
+  border-bottom: 2px solid #3a3e45 !important;
+  color: #d5dbdb !important;
+}
+
+.awsui-dark-mode [class*="awsui_table"] [class*="awsui_cell"] {
+  border-bottom: 1px solid #3a3e45 !important;
+  color: #d5dbdb !important;
+}
+
+/* ── Containers in dark mode ── */
+.awsui-dark-mode [class*="awsui_container"] {
+  border-color: #3a3e45 !important;
+}
+
+.awsui-dark-mode [class*="awsui_container"] [class*="awsui_header"] {
+  border-bottom-color: #3a3e45 !important;
+}
+
+/* ── Inputs in dark mode ── */
+.awsui-dark-mode [class*="awsui_input"] input,
+.awsui-dark-mode [class*="awsui_select"] [class*="awsui_trigger"] {
+  border-color: #3a3e45 !important;
+}
+
+/* ── Breadcrumbs in dark mode ── */
+.awsui-dark-mode [class*="awsui_breadcrumb-group"] {
+  color: #d5dbdb !important;
+}
+
+/* ── Text in dark mode ── */
+.awsui-dark-mode [class*="awsui_modal"] [class*="awsui_header"] {
+  border-bottom-color: #3a3e45 !important;
+}
+
+.awsui-dark-mode [class*="awsui_modal"] [class*="awsui_footer"] {
+  border-top-color: #3a3e45 !important;
+}
+
+/* ── Empty state text ── */
+.awsui-dark-mode [class*="awsui_empty"] {
+  color: #95a5a6 !important;
+}
