@@ -17,9 +17,9 @@ A functional clone of the AWS Route 53 console. Built with Next.js (TypeScript),
 
 ```
 ┌────────────────┐     HTTP/JSON      ┌─────────────────┐     SQL      ┌──────────┐
-│   Next.js      │ ─────────────────> │    FastAPI       │ ───────────> │  SQLite  │
-│   Vercel       │ <───────────────── │    Render        │ <─────────── │  /tmp    │
-│   port :3000   │                    │    port :8000     │              │          │
+│   Next.js      │ ─────────────────> │    FastAPI      │ ───────────> │  SQLite  │
+│   Vercel       │ <───────────────── │    Render       | <─────────── │  /tmp    │
+│   port :3000   │                    │    port :8000   │              │          │
 └────────────────┘                    └─────────────────┘              └──────────┘
 
 Authentication Flow:
@@ -27,11 +27,11 @@ Authentication Flow:
 │  Client  │ ──────────────────────────> │  Backend │
 │          │ <─ {access_token,           │          │
 │          │     refresh_token, user}    │          │
-│          │                            │          │
-│          │   On 401 → POST /refresh   │          │
+│          │                             │          │
+│          │   On 401 → POST /refresh    │          │
 │          │ ──────────────────────────> │          │
 │          │ <─ New token pair           │          │
-└──────────┘                            └──────────┘
+└──────────┘                             └──────────┘
 ```
 
 - Access token: 24-hour JWT (HS256), stored in `localStorage`
