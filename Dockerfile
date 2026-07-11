@@ -27,8 +27,7 @@ COPY --from=frontend-builder /app/frontend/.next/standalone/ /app/frontend/
 COPY --from=frontend-builder /app/frontend/.next/static/ /app/frontend/.next/static/
 COPY --from=frontend-builder /app/frontend/public/ /app/frontend/public/
 
-# Create data directory for SQLite
-RUN mkdir -p /data
+# /tmp is always writable on Render free tier (ephemeral, seed auto-populates)
 
 # Nginx config
 RUN rm /etc/nginx/sites-enabled/default
@@ -40,7 +39,7 @@ COPY deploy/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Environment
 ENV PORT=8000
 ENV NEXT_PUBLIC_API_URL=/api
-ENV DATABASE_URL=sqlite:////data/route53.db
+ENV DATABASE_URL=sqlite:////tmp/route53.db
 ENV CORS_ORIGINS=http://localhost
 
 EXPOSE 80
