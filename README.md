@@ -238,57 +238,49 @@ python -m pytest tests/ -v
 - **DNS routing policies** — simple records only (no weighted, latency, failover, geolocation)
 - **Delegation sets** — hardcoded name server list
 
-## Deployment (Single URL — Render Free Tier)
+## Deployment (Vercel + Render — no Docker)
 
-The entire app deploys as a single Docker container to **Render's free tier** — one URL, zero cost. SQLite is ephemeral (resets on redeploy), but the seed script auto-populates sample data on first run, so the app is always ready.
+### SQLite on Render free tier
+
+Render's free web services have a writable `/tmp` directory. SQLite data persists between requests and survives restarts. On redeploy (code push), the database resets — but the seed script auto-populates sample data on first run, so the app is always functional.
 
 ### 1. Push to GitHub
 
 ```bash
-# Create a repo at https://github.com/new named "route53-clone", then:
+# Create a repo at https://github.com/new named "route53-clone"
 git remote add origin https://github.com/YOUR_USERNAME/route53-clone.git
 git push -u origin main
 ```
 
-### 2. Deploy on Render
+### 2. Backend → Render
 
 1. Go to [render.com](https://render.com) → **New Web Service**
-2. Connect your GitHub repo → Find `route53-clone` → **Connect**
-3. Render auto-detects `Dockerfile` — leave defaults
-4. Set **Name:** `route53-clone`
-5. Add environment variables:
+2. Connect your GitHub repo → Find `route53-clone`
+3. **Root Directory:** `backend/`
+4. **Runtime:** Python 3
+5. **Build Command:** `pip install -r requirements.txt`
+6. **Start Command:** `python run.py`
+7. Choose **Free** plan
+8. Add environment variables:
    - `SECRET_KEY` → click **Generate**
-   - `CORS_ORIGINS` → `https://route53-clone.onrender.com`
-   - `NEXT_PUBLIC_API_URL` → `/api`
-6. Click **Create Web Service**
+   - `CORS_ORIGINS` → `https://route53-clone.vercel.app` (your Vercel URL)
+   - `DATABASE_URL` → `sqlite:////tmp/route53.db`
+9. Click **Deploy**
 
-### 3. Done
+Copy your backend URL (e.g. `https://route53-clone-backend.onrender.com`).
 
-In ~5 minutes your app is live at:
-```
-https://route53-clone.onrender.com
-```
+### 3. Frontend → Vercel
+
+1. Go to [vercel.com](https://vercel.com) → **Add New Project**
+2. Import your `route53-clone` repo
+3. **Root Directory:** `frontend/`
+4. **Framework:** Next.js
+5. Add environment variable:
+   - `NEXT_PUBLIC_API_URL` → `https://route53-clone-backend.onrender.com` (your Render URL)
+6. Click **Deploy**
+
+### 4. Done
+
+Your app is live at `https://route53-clone.vercel.app`. That's the single link to submit.
 
 Login: `admin` / `admin123`
-
-### Alternative: Vercel + Render (no Docker)
-
-If Docker build time is slow on Render's free tier, you can split frontend and backend:
-
-**Frontend → Vercel** (free, always-on):
-1. Go to [vercel.com](https://vercel.com) → Import GitHub repo
-2. Set root directory to `frontend/`
-3. Set env var: `NEXT_PUBLIC_API_URL` = your Render backend URL
-4. Deploy
-
-**Backend → Render** (free):
-1. New Web Service → Connect repo → **Not Docker**
-2. **Root Directory:** `backend/`
-3. **Build Command:** `pip install -r requirements.txt`
-4. **Start Command:** `python run.py`
-5. Environment variables:
-   - `SECRET_KEY`: auto-generate
-   - `CORS_ORIGINS`: your Vercel frontend URL
-   - `DATABASE_URL`: `sqlite:////tmp/route53.db`
-
-Submit only the Vercel URL — that's the single link.
