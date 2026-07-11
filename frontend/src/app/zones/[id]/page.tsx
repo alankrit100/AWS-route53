@@ -423,8 +423,7 @@ function ZoneDetailContent() {
                               { id: "edit", text: "Edit" },
                               { id: "delete", text: "Delete" },
                             ]}
-                            variant="inline-icon"
-                            iconName="ellipsis"
+                            variant="icon"
                             ariaLabel={`Actions for ${item.name}`}
                             onItemClick={({ detail }) => {
                               setEditRecord(item);

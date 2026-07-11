@@ -179,8 +179,7 @@ function ZonesContent() {
                     { id: "edit", text: "Edit comment" },
                     { id: "delete", text: "Delete" },
                   ]}
-                  variant="inline-icon"
-                  iconName="ellipsis"
+                  variant="icon"
                   ariaLabel={`Actions for ${item.name}`}
                   onItemClick={({ detail }) => {
                     if (detail.id === "view") router.push(`/zones/${item.id}`);
