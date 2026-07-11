@@ -124,6 +124,19 @@ function ZonesContent() {
               }}>
                 Create hosted zone
               </Button>
+              <ButtonDropdown
+                items={[
+                  { id: "import", text: "Import zone file" },
+                  { id: "export", text: "Export all zones" },
+                ]}
+                variant="normal"
+                expandToViewport
+                onItemClick={({ detail }) => {
+                  addNotification("info", `${detail.id === "import" ? "Import" : "Export"} will be available soon.`);
+                }}
+              >
+                Actions
+              </ButtonDropdown>
             </SpaceBetween>
           }
         >
