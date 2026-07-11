@@ -16,6 +16,7 @@ from app.schemas import (
 from app.utils.auth import get_current_user
 from app.utils.pagination import paginate
 from app.utils.validation import validate_record_type, validate_record_value
+from app.utils.bind_format import parse_bind_zone
 
 router = APIRouter()
 
@@ -320,3 +321,41 @@ def _recalculate_record_count(zone_id: str, db: Session):
     db.query(HostedZone).filter(HostedZone.id == zone_id).update(
         {"resource_record_set_count": count}
     )
+
+
+@router.post("/{zone_id}/import-bind")
+def import_bind_zone(
+    zone_id: str,
+    body: dict,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    zone = _get_zone_or_404(zone_id, db)
+    bind_text = body.get("zone_file", "")
+    if not bind_text:
+        raise InvalidInput("zone_file field is required.")
+
+    parsed = parse_bind_zone(bind_text, zone.name)
+    created = 0
+    for rec in parsed:
+        existing = db.query(DNSRecord).filter(
+            DNSRecord.zone_id == zone_id,
+            DNSRecord.name == rec["name"],
+            DNSRecord.type == rec["type"],
+        ).first()
+        if not existing:
+            dns_record = DNSRecord(
+                zone_id=zone_id,
+                name=rec["name"],
+                type=rec["type"],
+                ttl=rec["ttl"],
+                value=rec["value"],
+            )
+            db.add(dns_record)
+            created += 1
+
+    _create_change(zone_id, db, f"Imported {created} records from BIND zone file")
+    _recalculate_record_count(zone_id, db)
+    db.commit()
+
+    return {"imported": created, "total": len(parsed)}

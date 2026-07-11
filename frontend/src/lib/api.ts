@@ -132,6 +132,28 @@ export const records = {
     request<{ success: boolean }>("DELETE", `/api/zones/${zoneId}/records/${recordId}`),
 };
 
+// Exports / Imports
+export const exports_ = {
+  json: (zoneId: string) =>
+    request<{ zone_name: string; records: unknown[]; exported_at: string }>("GET", `/api/zones/${zoneId}/export-json`),
+  bind: async (zoneId: string, zoneName: string) => {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/api/zones/${zoneId}/export-bind`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    const text = await res.text();
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${zoneName.replace(/\.$/, "")}.zone`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+  importBind: (zoneId: string, zoneFile: string) =>
+    request<{ imported: number; total: number }>("POST", `/api/zones/${zoneId}/import-bind`, { zone_file: zoneFile }),
+};
+
 // Tags
 export const tags = {
   list: (zoneId: string) =>

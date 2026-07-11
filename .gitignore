@@ -21,3 +21,5 @@ frontend/out/
 # OS
 .DS_Store
 Thumbs.db
+
+route53-clone-dump.txt

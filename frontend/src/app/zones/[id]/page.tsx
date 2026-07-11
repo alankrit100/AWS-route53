@@ -17,9 +17,11 @@ import Tabs from "@cloudscape-design/components/tabs";
 import Alert from "@cloudscape-design/components/alert";
 import TextContent from "@cloudscape-design/components/text-content";
 import Container from "@cloudscape-design/components/container";
-import { auth, zones, records, tags } from "@/lib/api";
+import { auth, zones, records, tags, exports_ } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider, useNotification } from "@/components/NotificationFlashbar";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { ShortcutsHelp } from "@/components/ShortcutsHelp";
 import type { HostedZone, RecordResponse, TagItem } from "@/lib/types";
 import { RECORD_TYPES } from "@/lib/types";
 
@@ -52,6 +54,37 @@ function ZoneDetailContent() {
   const [showTagModal, setShowTagModal] = useState(false);
   const [newTagKey, setNewTagKey] = useState("");
   const [newTagValue, setNewTagValue] = useState("");
+
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importText, setImportText] = useState("");
+  const [selectedRecords, setSelectedRecords] = useState<RecordResponse[]>([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const { showHelp, setShowHelp } = useKeyboardShortcuts([
+    { key: "c", description: "Create record", action: () => {
+      setNewName(""); setNewValue(""); setNewTTL("300");
+      setNewType({ label: "A", value: "A" }); setError(""); setShowCreateModal(true);
+    }},
+  ]);
+
+  const handleBulkDelete = async () => {
+    if (selectedRecords.length === 0) return;
+    const soaNss = selectedRecords.filter((r) => r.type === "SOA" || r.type === "NS");
+    if (soaNss.length > 0) {
+      setError("Cannot bulk delete SOA or NS records");
+      return;
+    }
+    try {
+      for (const r of selectedRecords) {
+        await records.delete(zoneId, r.id);
+      }
+      setShowBulkDeleteModal(false);
+      setSelectedRecords([]);
+      addNotification("success", `Deleted ${selectedRecords.length} records`);
+      fetchRecords(1, search, typeFilter);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to delete records");
+    }
+  };
 
   const fetchZone = async () => {
     try {
@@ -179,6 +212,40 @@ function ZoneDetailContent() {
     } catch {}
   };
 
+  const handleExportJson = async () => {
+    try {
+      const data = await exports_.json(zoneId);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(zone?.name || "zone").replace(/\.$/, "")}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addNotification("success", "Zone exported as JSON");
+    } catch { addNotification("error", "Failed to export zone"); }
+  };
+
+  const handleExportBind = async () => {
+    try {
+      await exports_.bind(zoneId, zone?.name || "");
+      addNotification("success", "Zone exported as BIND zone file");
+    } catch { addNotification("error", "Failed to export zone"); }
+  };
+
+  const handleImportBind = async () => {
+    if (!importText.trim()) { setError("Paste a BIND zone file first"); return; }
+    try {
+      const result = await exports_.importBind(zoneId, importText);
+      setShowImportModal(false);
+      setImportText("");
+      addNotification("success", `Imported ${result.imported} records from BIND zone file`);
+      fetchRecords(1, search, typeFilter);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to import zone file");
+    }
+  };
+
   const recordTypeHelp: Record<string, string> = {
     A: "IPv4 address, e.g. 192.168.1.1",
     AAAA: "IPv6 address, e.g. 2001:db8::1",
@@ -198,6 +265,11 @@ function ZoneDetailContent() {
         actions={
           <SpaceBetween direction="horizontal" size="xs">
             <Button onClick={() => router.push("/zones")}>Back to zones</Button>
+            <Button onClick={handleExportJson}>Export JSON</Button>
+            <Button onClick={handleExportBind}>Export BIND</Button>
+            <Button onClick={() => { setImportText(""); setError(""); setShowImportModal(true); }}>
+              Import BIND
+            </Button>
             <Button variant="primary" onClick={() => {
               setNewName("");
               setNewValue("");
@@ -263,9 +335,18 @@ function ZoneDetailContent() {
                     </div>
                   </div>
 
+                  {selectedRecords.length > 0 && (
+                    <Button onClick={() => setShowBulkDeleteModal(true)}>
+                      Delete {selectedRecords.length} selected
+                    </Button>
+                  )}
                   <Table
                     loading={loading}
                     sortingDisabled
+                    selectionType="multi"
+                    selectedItems={selectedRecords}
+                    onSelectionChange={(e) => setSelectedRecords(e.detail.selectedItems)}
+                    trackBy="id"
                     columnDefinitions={[
                       {
                         id: "name",
@@ -460,6 +541,61 @@ function ZoneDetailContent() {
           <Button variant="primary" onClick={handleDeleteRecord}>Delete</Button>
         </Form>
       </Modal>
+
+      <Modal
+        visible={showBulkDeleteModal}
+        onDismiss={() => setShowBulkDeleteModal(false)}
+        header="Delete records"
+        closeAriaLabel="Close modal"
+      >
+        <Form>
+          {error && <Alert type="error">{error}</Alert>}
+          <TextContent>
+            <p>Are you sure you want to delete {selectedRecords.length} records?</p>
+          </TextContent>
+          <Button variant="primary" onClick={handleBulkDelete}>Delete</Button>
+        </Form>
+      </Modal>
+
+      <Modal
+        visible={showImportModal}
+        onDismiss={() => setShowImportModal(false)}
+        header="Import BIND zone file"
+        closeAriaLabel="Close modal"
+      >
+        <Form>
+          {error && <Alert type="error">{error}</Alert>}
+          <FormField
+            label="Zone file content"
+            description="Paste the contents of a BIND zone file"
+          >
+            <textarea
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+              style={{
+                width: "100%",
+                minHeight: "200px",
+                fontFamily: "monospace",
+                fontSize: "12px",
+                padding: "8px",
+                border: "1px solid #aab7b8",
+                borderRadius: "2px",
+                resize: "vertical",
+              }}
+              placeholder={"; BIND zone file\n$ORIGIN example.com.\n$TTL 3600\n@  IN  A  192.168.1.1\nwww  IN  A  192.168.1.2"}
+            />
+          </FormField>
+          <Button variant="primary" onClick={handleImportBind}>Import</Button>
+        </Form>
+      </Modal>
+
+      <ShortcutsHelp
+        visible={showHelp}
+        onDismiss={() => setShowHelp(false)}
+        shortcuts={[
+          { key: "c", description: "Create record" },
+        ]}
+      />
     </div>
   );
 }

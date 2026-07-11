@@ -1,6 +1,6 @@
 # Route 53 Clone
 
-A functional clone of the AWS Route 53 web console built for the Scalar AI Labs assessment. Provides hosted zone and DNS record management with a Route 53-style UI, persistent SQLite storage, and a RESTful API.
+A functional clone of the AWS Route 53 web console. Provides hosted zone and DNS record management with a Route 53-style UI (Cloudscape Design System), persistent SQLite storage, and a RESTful API.
 
 ## Tech Stack
 
@@ -11,7 +11,7 @@ A functional clone of the AWS Route 53 web console built for the Scalar AI Labs 
 | Backend | FastAPI (Python) |
 | Database | SQLite via SQLAlchemy |
 | Auth | Mocked JWT-based (hardcoded `admin`/`admin123`) |
-| Testing | pytest (backend), Vitest/Jest (frontend API client) |
+| Testing | pytest (100 tests, backend) |
 
 ## Architecture
 
@@ -22,15 +22,9 @@ A functional clone of the AWS Route 53 web console built for the Scalar AI Labs 
 └─────────────┘                   └──────────────┘             └─────────┘
 ```
 
-- Frontend is a single-page application with client-side routing
-- Backend exposes a RESTful JSON API mapped to Route 53 concepts
-- All data persists to a local `route53.db` SQLite file
-- Auth uses JWT tokens stored in `localStorage`
-
 ## Quick Start
 
 ### Prerequisites
-
 - Node.js 18+
 - Python 3.11+
 - npm
@@ -43,7 +37,7 @@ pip install -r requirements.txt
 python run.py
 ```
 
-The server starts at `http://localhost:8000`. On first run, it creates the SQLite database and seeds it with sample data (3 hosted zones, ~20 DNS records, an admin user).
+Server starts at `http://localhost:8000`. On first run it creates `route53.db` and seeds 3 sample zones, ~20 records, and the admin user.
 
 ### 2. Frontend
 
@@ -54,7 +48,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-The app starts at `http://localhost:3000`.
+App starts at `http://localhost:3000`.
 
 ### Login
 
@@ -62,103 +56,137 @@ The app starts at `http://localhost:3000`.
 |---|---|
 | `admin` | `admin123` |
 
+## Features
+
+### Authentication
+- JWT-based session with localStorage persistence
+- Hardcoded single user (mocked IAM)
+- Protected routes redirect to `/login`
+
+### Hosted Zones
+- Full CRUD: create, view, search, edit comment, delete
+- Zone creation auto-generates SOA + 4 NS records
+- Deletion blocked if non-essential records exist (matches Route53 behavior)
+- Search by domain name, pagination
+- Public/private type filter
+
+### DNS Records
+- Full CRUD with batch CREATE/DELETE/UPSERT support
+- 9 record types: A, AAAA, CNAME, TXT, MX, NS, PTR, SRV, CAA
+- Filter by type, search by name, pagination
+- Type-aware form (placeholder text changes per record type)
+- SOA/NS deletion protection
+
+### Tags
+- Add/remove tags on hosted zones
+- Max 10 tags per resource, key ≤128 chars, value ≤256 chars
+- Batch tag retrieval
+
+### Changes
+- Every mutation creates a Change with PENDING status
+- GET `/api/changes/{id}` to poll status
+
+### Dark Mode
+- Toggle in top navigation bar (☾/☀)
+- Persisted to localStorage
+- Uses Cloudscape's built-in dark mode for components
+- Custom dark palette: nav `#0f141a`, content `#16191f`, borders `#3a3e45`
+
+### Mocked Sections
+Dashboard, Health Checks, Traffic Policies, Resolver, Profiles — each shows a "Coming Soon" page within the Route53 nav shell.
+
 ## Database Schema
 
 ### `users`
 | Column | Type | Description |
 |---|---|---|
-| id | TEXT (PK) | UUID-style identifier |
+| id | TEXT (PK) | UUID-style |
 | username | TEXT (UNIQUE) | Login username |
 | password_hash | TEXT | bcrypt hash |
-| created_at | TEXT | ISO 8601 timestamp |
+| created_at | TEXT | ISO 8601 |
 
 ### `hosted_zones`
 | Column | Type | Description |
 |---|---|---|
 | id | TEXT (PK) | e.g. `Z1PA6795UKMFR9` |
-| name | TEXT | Fully qualified domain name |
+| name | TEXT | FQDN |
 | caller_reference | TEXT (UNIQUE) | Idempotency token |
 | comment | TEXT | Optional comment |
-| private_zone | INTEGER | Boolean flag |
+| private_zone | INTEGER | Boolean |
 | resource_record_set_count | INTEGER | Cached count |
 | created_at / updated_at | TEXT | Timestamps |
 
 ### `dns_records`
 | Column | Type | Description |
 |---|---|---|
-| id | TEXT (PK) | UUID-style identifier |
-| zone_id | TEXT (FK → hosted_zones) | Owning hosted zone |
-| name | TEXT | Record name (FQDN) |
+| id | TEXT (PK) | UUID-style |
+| zone_id | TEXT (FK) | FK → hosted_zones ON DELETE CASCADE |
+| name | TEXT | FQDN |
 | type | TEXT | A, AAAA, CNAME, TXT, MX, NS, PTR, SRV, CAA |
-| ttl | INTEGER | Time to live (seconds) |
-| value | TEXT | JSON array of value strings |
-| alias_target | TEXT (nullable) | JSON alias target config |
+| ttl | INTEGER | Seconds |
+| value | TEXT | JSON array of values |
+| alias_target | TEXT | Nullable JSON |
 | created_at / updated_at | TEXT | Timestamps |
 
 ### `changes`
 | Column | Type | Description |
 |---|---|---|
 | id | TEXT (PK) | e.g. `C1PA6795UKMFR9` |
-| zone_id | TEXT (FK → hosted_zones) | Related zone |
-| status | TEXT | `PENDING` or `INSYNC` |
-| comment | TEXT | Optional comment |
-| submitted_at | TEXT | Timestamp |
+| zone_id | TEXT (FK) | FK → hosted_zones ON DELETE CASCADE |
+| status | TEXT | PENDING or INSYNC |
+| comment | TEXT | Optional |
+| submitted_at | TEXT | ISO 8601 |
 
 ### `tags`
 | Column | Type | Description |
 |---|---|---|
-| id | TEXT (PK) | UUID-style identifier |
+| id | TEXT (PK) | UUID-style |
 | resource_type | TEXT | `hostedzone` |
-| resource_id | TEXT | ID of the resource |
-| key | TEXT | Tag key (max 128 chars) |
-| value | TEXT | Tag value (max 256 chars) |
+| resource_id | TEXT | Resource ID |
+| key | TEXT | Max 128 chars |
+| value | TEXT | Max 256 chars |
 | UNIQUE | (resource_type, resource_id, key) | |
 
 ## API Overview
 
-All endpoints require `Authorization: Bearer <token>` header except `/api/auth/login`.
+All endpoints require `Authorization: Bearer <token>` except `/api/auth/login`.
 
 ### Auth
-
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/auth/login` | Login, returns JWT token |
+| POST | `/api/auth/login` | Login, returns JWT |
 | POST | `/api/auth/logout` | Logout |
-| GET | `/api/auth/me` | Current user info |
+| GET | `/api/auth/me` | Current user |
 
 ### Hosted Zones
-
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/zones` | Create hosted zone (auto-creates SOA + NS) |
-| GET | `/api/zones` | List zones (`?search=&page=&size=`) |
+| POST | `/api/zones` | Create zone (auto-creates SOA + NS) |
+| GET | `/api/zones` | List zones (`?search=&page=&size=&type=`) |
 | GET | `/api/zones/{id}` | Get zone details |
-| PUT | `/api/zones/{id}` | Update zone comment |
-| DELETE | `/api/zones/{id}` | Delete zone (blocked if non-SOA/NS records exist) |
+| PUT | `/api/zones/{id}` | Update comment |
+| DELETE | `/api/zones/{id}` | Delete (blocked if non-essential records exist) |
 
 ### DNS Records
-
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/zones/{zid}/records` | Batch change: CREATE, DELETE, UPSERT |
-| GET | `/api/zones/{zid}/records` | List records (`?search=&type=&page=&size=`) |
+| POST | `/api/zones/{zid}/records` | Batch CREATE/DELETE/UPSERT |
+| GET | `/api/zones/{zid}/records` | List (`?search=&type=&page=&size=`) |
 | GET | `/api/zones/{zid}/records/{rid}` | Get single record |
 | PUT | `/api/zones/{zid}/records/{rid}` | Update record |
 | DELETE | `/api/zones/{zid}/records/{rid}` | Delete record |
 
 ### Tags
-
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/zones/{id}/tags` | List tags for zone |
+| GET | `/api/zones/{id}/tags` | List tags |
 | POST | `/api/zones/{id}/tags` | Add/remove tags |
-| POST | `/api/tags` | Batch get tags (up to 10 resources) |
+| POST | `/api/tags` | Batch get (≤10 resources) |
 
 ### Changes
-
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/changes/{id}` | Get change status |
+| GET | `/api/changes/{id}` | Get change status (PENDING/INSYNC) |
 
 ## Supported Record Types
 
@@ -174,6 +202,26 @@ All endpoints require `Authorization: Bearer <token>` header except `/api/auth/l
 | SRV | Priority Weight Port Target | `0 10 80 svc.example.com.` |
 | CAA | Flags Tag Value | `0 issue "letsencrypt.org"` |
 
+## Color Palette
+
+### Light Mode
+| Role | Color | Hex |
+|---|---|---|
+| Top nav / Side nav | Squid Ink | `#232f3e` |
+| Page background | Light gray | `#f2f3f3` |
+| Primary accent | AWS Blue | `#0972d3` |
+| Accent hover | Dark blue | `#033160` |
+| Active nav indicator | 3px left border | `#0972d3` |
+
+### Dark Mode
+| Role | Color | Hex |
+|---|---|---|
+| Top nav / Side nav | Darker navy | `#0f141a` |
+| Content background | Very dark | `#16191f` |
+| Borders | Medium dark | `#3a3e45` |
+| Accent (bright) | AWS Blue | `#539fe5` |
+| Accent hover | AWS Blue mid | `#0972d3` |
+
 ## Testing
 
 ```bash
@@ -181,27 +229,28 @@ cd backend
 python -m pytest tests/ -v
 ```
 
+100 tests covering auth, zones, records (all 9 types), tags, changes, and value validation.
+
 ## What's Mocked
 
-- **Authentication** — single hardcoded user, JWT-based, no IAM/roles
-- **Dashboard, Traffic Policies, Health Checks, Resolver, Profiles** — "Coming Soon" placeholders
-- **DNS routing policies** — simple records only (no weighted, latency, failover, geolocation, etc.)
+- **Authentication** — single hardcoded user (`admin`/`admin123`), no IAM/roles
+- **Dashboard, Traffic Policies, Health Checks, Resolver, Profiles** — Coming Soon placeholders
+- **DNS routing policies** — simple records only (no weighted, latency, failover, geolocation)
 - **Delegation sets** — hardcoded name server list
 
 ## Deployment
 
 ### Frontend (Vercel)
-
 1. Connect the GitHub repository to Vercel
 2. Set `NEXT_PUBLIC_API_URL` to your deployed backend URL
 3. Deploy from the `frontend/` directory
 
 ### Backend (Render)
-
-1. Create a new Web Service on Render
-2. Set build command: `pip install -r requirements.txt`
-3. Set start command: `python run.py`
-4. Set environment variables:
-   - `SECRET_KEY`: a random string
+1. Create a new Web Service
+2. Build command: `pip install -r requirements.txt`
+3. Start command: `cd backend && python run.py`
+4. Environment variables:
+   - `SECRET_KEY`: random string
    - `CORS_ORIGINS`: your Vercel frontend URL
-5. Enable a persistent disk for SQLite at `/data` and set `DATABASE_URL=sqlite:////data/route53.db`
+   - `DATABASE_URL`: `sqlite:////data/route53.db`
+5. Enable persistent disk at `/data` (1 GB)

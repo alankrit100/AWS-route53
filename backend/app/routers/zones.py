@@ -18,6 +18,7 @@ from app.schemas import (
 )
 from app.utils.auth import get_current_user
 from app.utils.pagination import paginate
+from app.utils.bind_format import zone_to_bind, zone_to_json
 
 router = APIRouter()
 
@@ -227,3 +228,48 @@ def delete_hosted_zone(
     db.commit()
 
     return result
+
+
+@router.get("/{zone_id}/export-bind")
+def export_zone_bind(
+    zone_id: str,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    zone = db.query(HostedZone).filter(HostedZone.id == zone_id).first()
+    if not zone:
+        raise NoSuchHostedZone()
+
+    records = db.query(DNSRecord).filter(DNSRecord.zone_id == zone_id).all()
+    record_dicts = [
+        {"name": r.name, "type": r.type, "ttl": r.ttl, "value": r.value}
+        for r in records
+    ]
+
+    bind_text = zone_to_bind(zone.name, record_dicts)
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(
+        content=bind_text,
+        headers={
+            "Content-Disposition": f'attachment; filename="{zone.name.rstrip(".")}.zone"'
+        },
+    )
+
+
+@router.get("/{zone_id}/export-json")
+def export_zone_json(
+    zone_id: str,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    zone = db.query(HostedZone).filter(HostedZone.id == zone_id).first()
+    if not zone:
+        raise NoSuchHostedZone()
+
+    records = db.query(DNSRecord).filter(DNSRecord.zone_id == zone_id).all()
+    record_dicts = [
+        {"name": r.name, "type": r.type, "ttl": r.ttl, "value": r.value}
+        for r in records
+    ]
+
+    return zone_to_json(zone.name, record_dicts)

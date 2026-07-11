@@ -17,6 +17,8 @@ import TextContent from "@cloudscape-design/components/text-content";
 import { auth, zones } from "@/lib/api";
 import { AppLayout } from "@/components/AppLayout";
 import { NotificationProvider, useNotification } from "@/components/NotificationFlashbar";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { ShortcutsHelp } from "@/components/ShortcutsHelp";
 import type { HostedZone } from "@/lib/types";
 
 function ZonesContent() {
@@ -36,6 +38,14 @@ function ZonesContent() {
   const [callerRef, setCallerRef] = useState("");
   const [error, setError] = useState("");
   const [selectedItems, setSelectedItems] = useState<HostedZone[]>([]);
+  const { showHelp, setShowHelp } = useKeyboardShortcuts([
+    { key: "c", description: "Create hosted zone", action: () => {
+      setNewName(""); setNewComment(""); setCallerRef(""); setError(""); setShowCreateModal(true);
+    }},
+    { key: "n", description: "Create hosted zone", action: () => {
+      setNewName(""); setNewComment(""); setCallerRef(""); setError(""); setShowCreateModal(true);
+    }},
+  ]);
 
   const fetchZones = async (p?: number, s?: string) => {
     setLoading(true);
@@ -267,6 +277,15 @@ function ZonesContent() {
           <Button variant="primary" onClick={handleDelete}>Delete</Button>
         </Form>
       </Modal>
+
+      <ShortcutsHelp
+        visible={showHelp}
+        onDismiss={() => setShowHelp(false)}
+        shortcuts={[
+          { key: "c", description: "Create hosted zone" },
+          { key: "n", description: "Create hosted zone" },
+        ]}
+      />
     </div>
   );
 }
