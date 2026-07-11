@@ -21,101 +21,98 @@ function DashboardContent() {
     zones.list({ size: 1 }).then((res) => setZoneCount(res.total)).catch(() => setZoneCount(0));
   }, []);
 
+  const count = zoneCount === null ? "\u2014" : zoneCount;
+
   return (
-    <SpaceBetween size="l" direction="vertical">
+    <SpaceBetween size="m" direction="vertical">
       <Header
         variant="h1"
-        description="Manage domain name system (DNS) settings, traffic policies, and health checks for your domains."
+        description="Manage DNS records, health checks, and traffic policies for your domains."
       >
         Route 53 dashboard
       </Header>
 
-      <ColumnLayout columns={4} variant="text-grid">
-        <Container>
-          <Box variant="awsui-key-label">Hosted zones</Box>
-          <Box variant="awsui-value-large" padding={{ top: "xxs", bottom: "xs" }}>
-            {zoneCount === null ? "—" : zoneCount}
-          </Box>
-          <Link onFollow={() => router.push("/zones")}>View hosted zones</Link>
-        </Container>
-        <Container>
-          <Box variant="awsui-key-label">Health checks</Box>
-          <Box variant="awsui-value-large" padding={{ top: "xxs", bottom: "xs" }}>0</Box>
-          <Link onFollow={() => router.push("/health-checks")}>View health checks</Link>
-        </Container>
-        <Container>
-          <Box variant="awsui-key-label">Traffic policies</Box>
-          <Box variant="awsui-value-large" padding={{ top: "xxs", bottom: "xs" }}>0</Box>
-          <Link onFollow={() => router.push("/traffic-policies")}>View traffic policies</Link>
-        </Container>
-        <Container>
-          <Box variant="awsui-key-label">Resolver rules</Box>
-          <Box variant="awsui-value-large" padding={{ top: "xxs", bottom: "xs" }}>0</Box>
-          <Link onFollow={() => router.push("/resolver")}>View resolver</Link>
-        </Container>
-      </ColumnLayout>
+      <Container header={<Header variant="h2">Resources</Header>}>
+        <ColumnLayout columns={4} variant="text-grid">
+          <div>
+            <Box variant="awsui-key-label">Hosted zones</Box>
+            <Box variant="awsui-value-large">{count}</Box>
+            <Link onFollow={() => router.push("/zones")}>View</Link>
+          </div>
+          <div>
+            <Box variant="awsui-key-label">Health checks</Box>
+            <Box variant="awsui-value-large">0</Box>
+            <Link onFollow={() => router.push("/health-checks")}>View</Link>
+          </div>
+          <div>
+            <Box variant="awsui-key-label">Traffic policies</Box>
+            <Box variant="awsui-value-large">0</Box>
+            <Link onFollow={() => router.push("/traffic-policies")}>View</Link>
+          </div>
+          <div>
+            <Box variant="awsui-key-label">Resolver rules</Box>
+            <Box variant="awsui-value-large">0</Box>
+            <Link onFollow={() => router.push("/resolver")}>View</Link>
+          </div>
+        </ColumnLayout>
+      </Container>
 
       <ColumnLayout columns={2} variant="text-grid">
         <Container header={<Header variant="h2">Getting started</Header>}>
-          <SpaceBetween size="m" direction="vertical">
-            <Box variant="p">
-              Follow these steps to get started with Amazon Route 53.
-            </Box>
-            <SpaceBetween size="xs" direction="vertical">
-              <Link onFollow={() => router.push("/zones")}>
-                1. Create a hosted zone for your domain
-              </Link>
-              <Link onFollow={() => router.push("/zones")}>
-                2. Add DNS records within your hosted zone
-              </Link>
-              <Link onFollow={() => router.push("/health-checks")}>
-                3. Set up health checks for your endpoints
-              </Link>
-              <Link onFollow={() => router.push("/traffic-policies")}>
-                4. Create traffic policies to route users
-              </Link>
-            </SpaceBetween>
+          <SpaceBetween size="xs" direction="vertical">
+            <Link onFollow={() => router.push("/zones")}>
+              1. Create a hosted zone for your domain
+            </Link>
+            <Link onFollow={() => router.push("/zones")}>
+              2. Add DNS records within your hosted zone
+            </Link>
+            <Link onFollow={() => router.push("/health-checks")}>
+              3. Set up health checks for your endpoints
+            </Link>
+            <Link onFollow={() => router.push("/traffic-policies")}>
+              4. Create traffic policies to route users
+            </Link>
           </SpaceBetween>
         </Container>
 
         <Container header={<Header variant="h2">DNS management</Header>}>
-          <SpaceBetween size="m" direction="vertical">
-            <SpaceBetween size="xs" direction="vertical">
-              <Link onFollow={() => router.push("/zones")}>
-                Hosted zones — manage records for your domains
-              </Link>
-              <Link onFollow={() => router.push("/health-checks")}>
-                Health checks — monitor endpoint health
-              </Link>
-              <Link onFollow={() => router.push("/traffic-policies")}>
-                Traffic policies — configure routing policies
-              </Link>
-              <Link onFollow={() => router.push("/profiles")}>
-                Profiles — manage Route 53 profiles
-              </Link>
-              <Link onFollow={() => router.push("/resolver")}>
-                Resolver — manage DNS firewall and query logging
-              </Link>
-            </SpaceBetween>
+          <SpaceBetween size="xs" direction="vertical">
+            <Link onFollow={() => router.push("/zones")}>
+              Hosted zones
+            </Link>
+            <Link onFollow={() => router.push("/health-checks")}>
+              Health checks
+            </Link>
+            <Link onFollow={() => router.push("/traffic-policies")}>
+              Traffic policies
+            </Link>
+            <Link onFollow={() => router.push("/profiles")}>
+              Profiles
+            </Link>
+            <Link onFollow={() => router.push("/resolver")}>
+              Resolver
+            </Link>
+          </SpaceBetween>
+          <div style={{ marginTop: "12px" }}>
             <Button variant="primary" onClick={() => router.push("/zones")}>
               Go to hosted zones
             </Button>
-          </SpaceBetween>
+          </div>
         </Container>
       </ColumnLayout>
 
       <Container header={<Header variant="h2">Additional resources</Header>}>
-        <SpaceBetween size="xs" direction="vertical">
+        <ColumnLayout columns={3} variant="text-grid">
           <Link external href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/">
-            Route 53 Developer Guide
+            Developer Guide
           </Link>
           <Link external href="https://docs.aws.amazon.com/Route53/latest/APIReference/">
-            Route 53 API Reference
+            API Reference
           </Link>
           <Link external href="https://aws.amazon.com/route53/pricing/">
-            Route 53 pricing
+            Pricing
           </Link>
-        </SpaceBetween>
+        </ColumnLayout>
       </Container>
     </SpaceBetween>
   );
