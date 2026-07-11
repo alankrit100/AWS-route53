@@ -238,19 +238,35 @@ python -m pytest tests/ -v
 - **DNS routing policies** — simple records only (no weighted, latency, failover, geolocation)
 - **Delegation sets** — hardcoded name server list
 
-## Deployment
+## Deployment (Single URL — Render with Docker)
 
-### Frontend (Vercel)
-1. Connect the GitHub repository to Vercel
-2. Set `NEXT_PUBLIC_API_URL` to your deployed backend URL
-3. Deploy from the `frontend/` directory
+The entire app (frontend + backend + database) deploys as a single Docker container to **Render** and is reachable at one URL.
 
-### Backend (Render)
-1. Create a new Web Service
-2. Build command: `pip install -r requirements.txt`
-3. Start command: `cd backend && python run.py`
-4. Environment variables:
-   - `SECRET_KEY`: random string
-   - `CORS_ORIGINS`: your Vercel frontend URL
-   - `DATABASE_URL`: `sqlite:////data/route53.db`
-5. Enable persistent disk at `/data` (1 GB)
+### 1. Push to GitHub
+
+```bash
+git remote add origin https://github.com/YOUR_USERNAME/route53-clone.git
+git push -u origin main
+```
+
+### 2. Deploy on Render
+
+1. Go to [render.com](https://render.com) → **New Web Service**
+2. Connect your GitHub repo
+3. Render auto-detects the `Dockerfile`
+4. Set the following:
+   - **Name:** `route53-clone`
+   - **Region:** Choose closest to you
+   - **Branch:** `main`
+5. Add a **Persistent Disk**:
+   - **Name:** `sqlite-data`
+   - **Mount Path:** `/data`
+   - **Size:** 1 GB
+6. Add environment variables:
+   - `SECRET_KEY`: auto-generate (click "Generate")
+   - `CORS_ORIGINS`: `https://route53-clone.onrender.com` (use your actual Render URL)
+   - `NEXT_PUBLIC_API_URL`: `/api`
+7. Click **Create Web Service**
+
+Render builds the Docker image and deploys. In ~5 minutes your app is live at:
+`https://route53-clone.onrender.com`

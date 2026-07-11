@@ -10,7 +10,7 @@ services:
       sizeGB: 1
     envVars:
       - key: CORS_ORIGINS
-        value: https://your-frontend-url.onrender.com
+        value: https://your-app-name.onrender.com
       - key: SECRET_KEY
         generateValue: true
       - key: NEXT_PUBLIC_API_URL

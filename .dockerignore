@@ -1,0 +1,13 @@
+node_modules
+.next
+__pycache__
+*.pyc
+.pytest_cache
+.git
+.gitignore
+.env
+.env.local
+route53.db
+route53-clone-dump.txt
+README.md
+*.md
